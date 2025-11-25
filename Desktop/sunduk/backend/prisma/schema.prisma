@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Language {
+  id        String   @id @default(cuid())
+  code      String   @unique // 'tr', 'ru'
+  name      String
+  flag_icon String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  nativeUsers      User[]              @relation("NativeLanguage")
+  learningUsers    User[]              @relation("LearningLanguage")
+  unitTranslations UnitTranslation[]
+  lessonTranslations LessonTranslation[]
+  exercisePrompts  ExercisePrompt[]
+  optionTranslations ExerciseOptionTranslation[]
+
+  @@map("languages")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String   @map("password_hash")
+  username           String
+  role               String   @default("user") // 'user' or 'admin'
+  nativeLanguageId   String   @map("native_language_id")
+  learningLanguageId String   @map("learning_language_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  nativeLanguage   Language         @relation("NativeLanguage", fields: [nativeLanguageId], references: [id])
+  learningLanguage Language         @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  progress         UserProgress[]
+  subscriptions    UserSubscription[]
+
+  @@map("users")
+}
+
+model Level {
+  id        String   @id @default(cuid())
+  code      String   @unique // 'A1', 'A2', etc.
+  order     Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  units Unit[]
+
+  @@map("levels")
+}
+
+model Unit {
+  id        String   @id @default(cuid())
+  levelId   String   @map("level_id")
+  order     Int
+  slug      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  level         Level              @relation(fields: [levelId], references: [id])
+  lessons       Lesson[]
+  translations  UnitTranslation[]
+
+  @@unique([levelId, slug])
+  @@map("units")
+}
+
+model UnitTranslation {
+  id          String   @id @default(cuid())
+  unitId      String   @map("unit_id")
+  languageId  String   @map("language_id")
+  title       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  unit     Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([unitId, languageId])
+  @@map("unit_translations")
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  unitId    String   @map("unit_id")
+  order     Int
+  isFree    Boolean  @default(false) @map("is_free")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  unit         Unit                @relation(fields: [unitId], references: [id])
+  translations LessonTranslation[]
+  exercises    Exercise[]
+  progress     UserProgress[]
+
+  @@map("lessons")
+}
+
+model LessonTranslation {
+  id         String   @id @default(cuid())
+  lessonId   String   @map("lesson_id")
+  languageId String   @map("language_id")
+  title      String
+  contentMd  String   @map("content_md") // Markdown content
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  lesson   Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([lessonId, languageId])
+  @@map("lesson_translations")
+}
+
+model Exercise {
+  id            String   @id @default(cuid())
+  lessonId      String   @map("lesson_id")
+  type          String   // 'multiple_choice', 'listening', etc.
+  correctAnswer String?  @map("correct_answer")
+  mediaUrl      String?  @map("media_url")
+  order         Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  lesson   Lesson              @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  prompts  ExercisePrompt[]
+  options  ExerciseOption[]
+
+  @@map("exercises")
+}
+
+model ExercisePrompt {
+  id          String   @id @default(cuid())
+  exerciseId  String   @map("exercise_id")
+  languageId  String   @map("language_id")
+  questionText String  @map("question_text")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([exerciseId, languageId])
+  @@map("exercise_prompts")
+}
+
+model ExerciseOption {
+  id         String   @id @default(cuid())
+  exerciseId String   @map("exercise_id")
+  order      Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  exercise    Exercise                  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  translations ExerciseOptionTranslation[]
+
+  @@map("exercise_options")
+}
+
+model ExerciseOptionTranslation {
+  id         String   @id @default(cuid())
+  optionId   String   @map("option_id")
+  languageId String   @map("language_id")
+  optionText String   @map("option_text")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  option   ExerciseOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  language Language        @relation(fields: [languageId], references: [id])
+
+  @@unique([optionId, languageId])
+  @@map("exercise_option_translations")
+}
+
+model UserProgress {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  currentLessonId String? @map("current_lesson_id")
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentLesson Lesson? @relation(fields: [currentLessonId], references: [id])
+
+  @@unique([userId])
+  @@map("user_progress")
+}
+
+model UserSubscription {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  startDate DateTime  @map("start_date")
+  endDate   DateTime  @map("end_date")
+  status    String    @default("active") // 'active' or 'expired'
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_subscriptions")
+}
+

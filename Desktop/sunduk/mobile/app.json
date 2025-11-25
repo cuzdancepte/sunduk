@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Sunduk - Turkish Learning",
+    "slug": "sunduk-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#6200ee",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sunduk.turkishlearning"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#6200ee"
+      },
+      "package": "com.sunduk.turkishlearning"
+    }
+  }
+}
+
