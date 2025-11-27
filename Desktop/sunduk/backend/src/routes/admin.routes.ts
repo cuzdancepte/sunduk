@@ -4,14 +4,25 @@ import { adminMiddleware } from '../middleware/admin.middleware';
 import {
   getLanguages,
   createLanguage,
+  updateLanguage,
+  deleteLanguage,
   getLevels,
   createLevel,
+  updateLevel,
+  deleteLevel,
   getUnits,
   createUnit,
+  updateUnit,
+  deleteUnit,
   getLessons,
   createLesson,
+  updateLesson,
+  deleteLesson,
   getExercises,
+  getExercise,
   createExercise,
+  updateExercise,
+  deleteExercise,
   getUsers,
   getUserSubscriptions,
   createSubscription,
@@ -26,22 +37,33 @@ router.use(adminMiddleware);
 // Languages
 router.get('/languages', getLanguages);
 router.post('/languages', createLanguage);
+router.put('/languages/:id', updateLanguage);
+router.delete('/languages/:id', deleteLanguage);
 
 // Levels
 router.get('/levels', getLevels);
 router.post('/levels', createLevel);
+router.put('/levels/:id', updateLevel);
+router.delete('/levels/:id', deleteLevel);
 
 // Units
 router.get('/units', getUnits);
 router.post('/units', createUnit);
+router.put('/units/:id', updateUnit);
+router.delete('/units/:id', deleteUnit);
 
 // Lessons
 router.get('/lessons', getLessons);
 router.post('/lessons', createLesson);
+router.put('/lessons/:id', updateLesson);
+router.delete('/lessons/:id', deleteLesson);
 
 // Exercises
 router.get('/exercises', getExercises);
+router.get('/exercises/:id', getExercise);
 router.post('/exercises', createExercise);
+router.put('/exercises/:id', updateExercise);
+router.delete('/exercises/:id', deleteExercise);
 
 // Users
 router.get('/users', getUsers);

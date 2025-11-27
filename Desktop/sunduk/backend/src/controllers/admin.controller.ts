@@ -32,6 +32,38 @@ export const createLanguage = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateLanguage = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { code, name, flagIcon } = req.body;
+    const language = await prisma.language.update({
+      where: { id },
+      data: {
+        code,
+        name,
+        flag_icon: flagIcon,
+      },
+    });
+    res.json(language);
+  } catch (error) {
+    console.error('Update language error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteLanguage = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.language.delete({
+      where: { id },
+    });
+    res.json({ message: 'Language deleted successfully' });
+  } catch (error) {
+    console.error('Delete language error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Levels CRUD
 export const getLevels = async (req: AuthRequest, res: Response) => {
   try {
@@ -57,6 +89,37 @@ export const createLevel = async (req: AuthRequest, res: Response) => {
     res.status(201).json(level);
   } catch (error) {
     console.error('Create level error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateLevel = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { code, order } = req.body;
+    const level = await prisma.level.update({
+      where: { id },
+      data: {
+        code,
+        order,
+      },
+    });
+    res.json(level);
+  } catch (error) {
+    console.error('Update level error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteLevel = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.level.delete({
+      where: { id },
+    });
+    res.json({ message: 'Level deleted successfully' });
+  } catch (error) {
+    console.error('Delete level error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -103,6 +166,50 @@ export const createUnit = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateUnit = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { levelId, order, slug, translations } = req.body;
+    
+    // Delete existing translations and create new ones
+    await prisma.unitTranslation.deleteMany({
+      where: { unitId: id },
+    });
+
+    const unit = await prisma.unit.update({
+      where: { id },
+      data: {
+        levelId,
+        order,
+        slug,
+        translations: {
+          create: translations || [],
+        },
+      },
+      include: {
+        translations: true,
+      },
+    });
+    res.json(unit);
+  } catch (error) {
+    console.error('Update unit error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteUnit = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.unit.delete({
+      where: { id },
+    });
+    res.json({ message: 'Unit deleted successfully' });
+  } catch (error) {
+    console.error('Delete unit error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Lessons CRUD
 export const getLessons = async (req: AuthRequest, res: Response) => {
   try {
@@ -145,6 +252,50 @@ export const createLesson = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateLesson = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { unitId, order, isFree, translations } = req.body;
+    
+    // Delete existing translations and create new ones
+    await prisma.lessonTranslation.deleteMany({
+      where: { lessonId: id },
+    });
+
+    const lesson = await prisma.lesson.update({
+      where: { id },
+      data: {
+        unitId,
+        order,
+        isFree: isFree || false,
+        translations: {
+          create: translations || [],
+        },
+      },
+      include: {
+        translations: true,
+      },
+    });
+    res.json(lesson);
+  } catch (error) {
+    console.error('Update lesson error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteLesson = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.lesson.delete({
+      where: { id },
+    });
+    res.json({ message: 'Lesson deleted successfully' });
+  } catch (error) {
+    console.error('Delete lesson error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Exercises CRUD
 export const getExercises = async (req: AuthRequest, res: Response) => {
   try {
@@ -152,12 +303,17 @@ export const getExercises = async (req: AuthRequest, res: Response) => {
     const exercises = await prisma.exercise.findMany({
       where: lessonId ? { lessonId: lessonId as string } : undefined,
       include: {
-        lesson: true,
+        lesson: {
+          include: {
+            translations: true,
+          },
+        },
         prompts: true,
         options: {
           include: {
             translations: true,
           },
+          orderBy: { order: 'asc' },
         },
       },
       orderBy: { order: 'asc' },
@@ -165,6 +321,36 @@ export const getExercises = async (req: AuthRequest, res: Response) => {
     res.json(exercises);
   } catch (error) {
     console.error('Get exercises error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getExercise = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exercise = await prisma.exercise.findUnique({
+      where: { id },
+      include: {
+        lesson: {
+          include: {
+            translations: true,
+          },
+        },
+        prompts: true,
+        options: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    if (!exercise) {
+      return res.status(404).json({ error: 'Exercise not found' });
+    }
+    res.json(exercise);
+  } catch (error) {
+    console.error('Get exercise error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -213,6 +399,88 @@ export const createExercise = async (req: AuthRequest, res: Response) => {
     res.status(201).json(exercise);
   } catch (error) {
     console.error('Create exercise error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateExercise = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      lessonId,
+      type,
+      correctAnswer,
+      mediaUrl,
+      order,
+      prompts,
+      options,
+    } = req.body;
+
+    // Delete existing prompts, options and their translations
+    await prisma.exercisePrompt.deleteMany({
+      where: { exerciseId: id },
+    });
+    
+    const existingOptions = await prisma.exerciseOption.findMany({
+      where: { exerciseId: id },
+    });
+    
+    for (const opt of existingOptions) {
+      await prisma.exerciseOptionTranslation.deleteMany({
+        where: { optionId: opt.id },
+      });
+    }
+    
+    await prisma.exerciseOption.deleteMany({
+      where: { exerciseId: id },
+    });
+
+    const exercise = await prisma.exercise.update({
+      where: { id },
+      data: {
+        lessonId,
+        type,
+        correctAnswer,
+        mediaUrl,
+        order: order || 0,
+        prompts: {
+          create: prompts || [],
+        },
+        options: {
+          create:
+            options?.map((opt: any) => ({
+              order: opt.order || 0,
+              translations: {
+                create: opt.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        prompts: true,
+        options: {
+          include: {
+            translations: true,
+          },
+        },
+      },
+    });
+    res.json(exercise);
+  } catch (error) {
+    console.error('Update exercise error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteExercise = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.exercise.delete({
+      where: { id },
+    });
+    res.json({ message: 'Exercise deleted successfully' });
+  } catch (error) {
+    console.error('Delete exercise error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

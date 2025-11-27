@@ -4,6 +4,22 @@ import { AuthRequest } from '../middleware/auth.middleware';
 
 export const getLevels = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    // Get user's native language
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { nativeLanguageId: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     const levels = await prisma.level.findMany({
       orderBy: { order: 'asc' },
       include: {
@@ -12,7 +28,17 @@ export const getLevels = async (req: AuthRequest, res: Response) => {
           include: {
             translations: {
               where: {
-                languageId: req.user?.nativeLanguageId || '',
+                languageId: user.nativeLanguageId,
+              },
+            },
+            lessons: {
+              orderBy: { order: 'asc' },
+              include: {
+                translations: {
+                  where: {
+                    languageId: user.nativeLanguageId,
+                  },
+                },
               },
             },
           },
@@ -30,10 +56,20 @@ export const getLevels = async (req: AuthRequest, res: Response) => {
 export const getUnit = async (req: AuthRequest, res: Response) => {
   try {
     const { unitId } = req.params;
-    const nativeLanguageId = req.user?.nativeLanguageId;
+    const userId = req.userId;
 
-    if (!nativeLanguageId) {
+    if (!userId) {
       return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    // Get user's native language
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { nativeLanguageId: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
     const unit = await prisma.unit.findUnique({
@@ -42,7 +78,7 @@ export const getUnit = async (req: AuthRequest, res: Response) => {
         level: true,
         translations: {
           where: {
-            languageId: nativeLanguageId,
+            languageId: user.nativeLanguageId,
           },
         },
         lessons: {
@@ -50,7 +86,7 @@ export const getUnit = async (req: AuthRequest, res: Response) => {
           include: {
             translations: {
               where: {
-                languageId: nativeLanguageId,
+                languageId: user.nativeLanguageId,
               },
             },
           },
@@ -72,12 +108,23 @@ export const getUnit = async (req: AuthRequest, res: Response) => {
 export const getLesson = async (req: AuthRequest, res: Response) => {
   try {
     const { lessonId } = req.params;
-    const nativeLanguageId = req.user?.nativeLanguageId;
     const userId = req.userId;
 
-    if (!nativeLanguageId || !userId) {
+    if (!userId) {
       return res.status(401).json({ error: 'User authentication required' });
     }
+
+    // Get user's native language
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { nativeLanguageId: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const nativeLanguageId = user.nativeLanguageId;
 
     // Check subscription for premium lessons
     const lesson = await prisma.lesson.findUnique({
@@ -132,11 +179,7 @@ export const getLesson = async (req: AuthRequest, res: Response) => {
             },
             options: {
               include: {
-                translations: {
-                  where: {
-                    languageId: nativeLanguageId,
-                  },
-                },
+                translations: true, // Get all translations, frontend will filter by native language
               },
               orderBy: { order: 'asc' },
             },
