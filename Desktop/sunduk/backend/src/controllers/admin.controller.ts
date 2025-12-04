@@ -489,6 +489,304 @@ export const deleteExercise = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Exams CRUD
+export const getExams = async (req: AuthRequest, res: Response) => {
+  try {
+    const { unitId } = req.query;
+    const exams = await prisma.exam.findMany({
+      where: unitId ? { unitId: unitId as string } : undefined,
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        translations: true,
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+      orderBy: { order: 'asc' },
+    });
+    res.json(exams);
+  } catch (error) {
+    console.error('Get exams error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getExam = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exam = await prisma.exam.findUnique({
+      where: { id },
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        translations: true,
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+    res.json(exam);
+  } catch (error) {
+    console.error('Get exam error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const createExam = async (req: AuthRequest, res: Response) => {
+  try {
+    const { unitId, order, passingScore, translations } = req.body;
+
+    const exam = await prisma.exam.create({
+      data: {
+        unitId,
+        order: parseInt(order),
+        passingScore: passingScore ? parseFloat(passingScore) : 70,
+        translations: {
+          create: translations?.map((t: any) => ({
+            languageId: t.languageId,
+            title: t.title,
+            description: t.description || null,
+          })) || [],
+        },
+      },
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        translations: true,
+      },
+    });
+    res.status(201).json(exam);
+  } catch (error) {
+    console.error('Create exam error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateExam = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { unitId, order, passingScore, translations } = req.body;
+
+    // First, delete existing translations
+    await prisma.examTranslation.deleteMany({
+      where: { examId: id },
+    });
+
+    const exam = await prisma.exam.update({
+      where: { id },
+      data: {
+        unitId,
+        order: parseInt(order),
+        passingScore: passingScore ? parseFloat(passingScore) : 70,
+        translations: {
+          create: translations?.map((t: any) => ({
+            languageId: t.languageId,
+            title: t.title,
+            description: t.description || null,
+          })) || [],
+        },
+      },
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        translations: true,
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    res.json(exam);
+  } catch (error) {
+    console.error('Update exam error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteExam = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.exam.delete({
+      where: { id },
+    });
+    res.json({ message: 'Exam deleted successfully' });
+  } catch (error) {
+    console.error('Delete exam error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Exam Questions CRUD
+export const createExamQuestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { examId } = req.params;
+    const {
+      type,
+      order,
+      correctAnswer,
+      mediaUrl,
+      prompts,
+      options,
+    } = req.body;
+
+    const question = await prisma.examQuestion.create({
+      data: {
+        examId,
+        type,
+        order: order || 0,
+        correctAnswer,
+        mediaUrl,
+        prompts: {
+          create: prompts || [],
+        },
+        options: {
+          create:
+            options?.map((opt: any) => ({
+              order: opt.order || 0,
+              translations: {
+                create: opt.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        prompts: true,
+        options: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    res.status(201).json(question);
+  } catch (error) {
+    console.error('Create exam question error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateExamQuestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      examId,
+      type,
+      order,
+      correctAnswer,
+      mediaUrl,
+      prompts,
+      options,
+    } = req.body;
+
+    // Delete existing prompts and options
+    await prisma.examQuestionPrompt.deleteMany({
+      where: { questionId: id },
+    });
+    await prisma.examQuestionOptionTranslation.deleteMany({
+      where: {
+        option: {
+          questionId: id,
+        },
+      },
+    });
+    await prisma.examQuestionOption.deleteMany({
+      where: { questionId: id },
+    });
+
+    const question = await prisma.examQuestion.update({
+      where: { id },
+      data: {
+        examId,
+        type,
+        order: order || 0,
+        correctAnswer,
+        mediaUrl,
+        prompts: {
+          create: prompts || [],
+        },
+        options: {
+          create:
+            options?.map((opt: any) => ({
+              order: opt.order || 0,
+              translations: {
+                create: opt.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        prompts: true,
+        options: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    res.json(question);
+  } catch (error) {
+    console.error('Update exam question error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteExamQuestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.examQuestion.delete({
+      where: { id },
+    });
+    res.json({ message: 'Exam question deleted successfully' });
+  } catch (error) {
+    console.error('Delete exam question error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Users Management
 export const getUsers = async (req: AuthRequest, res: Response) => {
   try {

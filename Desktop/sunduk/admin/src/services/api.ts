@@ -186,6 +186,76 @@ export const adminAPI = {
   ) => api.put(`/admin/exercises/${id}`, data),
   deleteExercise: (id: string) => api.delete(`/admin/exercises/${id}`),
 
+  // Exams
+  getExams: (unitId?: string) =>
+    api.get('/admin/exams', { params: { unitId } }),
+  getExam: (id: string) => api.get(`/admin/exams/${id}`),
+  createExam: (data: {
+    unitId: string;
+    order: number;
+    passingScore?: number;
+    translations?: Array<{
+      languageId: string;
+      title: string;
+      description?: string;
+    }>;
+  }) => api.post('/admin/exams', data),
+  updateExam: (
+    id: string,
+    data: {
+      unitId: string;
+      order: number;
+      passingScore?: number;
+      translations?: Array<{
+        languageId: string;
+        title: string;
+        description?: string;
+      }>;
+    }
+  ) => api.put(`/admin/exams/${id}`, data),
+  deleteExam: (id: string) => api.delete(`/admin/exams/${id}`),
+
+  // Exam Questions
+  createExamQuestion: (examId: string, data: {
+    type: string;
+    order: number;
+    correctAnswer?: string;
+    mediaUrl?: string;
+    prompts?: Array<{
+      languageId: string;
+      questionText: string;
+    }>;
+    options?: Array<{
+      order: number;
+      translations?: Array<{
+        languageId: string;
+        optionText: string;
+      }>;
+    }>;
+  }) => api.post(`/admin/exams/${examId}/questions`, data),
+  updateExamQuestion: (
+    id: string,
+    data: {
+      examId: string;
+      type: string;
+      order: number;
+      correctAnswer?: string;
+      mediaUrl?: string;
+      prompts?: Array<{
+        languageId: string;
+        questionText: string;
+      }>;
+      options?: Array<{
+        order: number;
+        translations?: Array<{
+          languageId: string;
+          optionText: string;
+        }>;
+      }>;
+    }
+  ) => api.put(`/admin/exam-questions/${id}`, data),
+  deleteExamQuestion: (id: string) => api.delete(`/admin/exam-questions/${id}`),
+
   // Upload
   uploadImage: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData();

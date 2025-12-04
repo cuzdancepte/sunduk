@@ -23,6 +23,14 @@ import {
   createExercise,
   updateExercise,
   deleteExercise,
+  getExams,
+  getExam,
+  createExam,
+  updateExam,
+  deleteExam,
+  createExamQuestion,
+  updateExamQuestion,
+  deleteExamQuestion,
   getUsers,
   getUserSubscriptions,
   createSubscription,
@@ -64,6 +72,18 @@ router.get('/exercises/:id', getExercise);
 router.post('/exercises', createExercise);
 router.put('/exercises/:id', updateExercise);
 router.delete('/exercises/:id', deleteExercise);
+
+// Exams
+router.get('/exams', getExams);
+router.get('/exams/:id', getExam);
+router.post('/exams', createExam);
+router.put('/exams/:id', updateExam);
+router.delete('/exams/:id', deleteExam);
+
+// Exam Questions
+router.post('/exams/:examId/questions', createExamQuestion);
+router.put('/exam-questions/:id', updateExamQuestion);
+router.delete('/exam-questions/:id', deleteExamQuestion);
 
 // Users
 router.get('/users', getUsers);

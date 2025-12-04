@@ -25,6 +25,9 @@ model Language {
   lessonTranslations LessonTranslation[]
   exercisePrompts  ExercisePrompt[]
   optionTranslations ExerciseOptionTranslation[]
+  examTranslations ExamTranslation[]
+  examQuestionPrompts ExamQuestionPrompt[]
+  examQuestionOptionTranslations ExamQuestionOptionTranslation[]
 
   @@map("languages")
 }
@@ -75,6 +78,7 @@ model Unit {
   level         Level              @relation(fields: [levelId], references: [id])
   lessons       Lesson[]
   translations  UnitTranslation[]
+  exams         Exam[]
 
   @@unique([levelId, slug])
   @@map("units")
@@ -247,5 +251,102 @@ model UserSubscription {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_subscriptions")
+}
+
+model Exam {
+  id           String   @id @default(cuid())
+  unitId       String   @map("unit_id")
+  order        Int
+  passingScore Float    @default(70) @map("passing_score") // Geçme yüzdesi (0-100)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  unit         Unit              @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  translations ExamTranslation[]
+  questions    ExamQuestion[]
+
+  @@map("exams")
+}
+
+model ExamTranslation {
+  id          String   @id @default(cuid())
+  examId      String   @map("exam_id")
+  languageId  String   @map("language_id")
+  title       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([examId, languageId])
+  @@map("exam_translations")
+}
+
+model ExamQuestion {
+  id            String   @id @default(cuid())
+  examId        String   @map("exam_id")
+  order         Int      @default(0)
+  type          String   // 'multiple_choice', 'listening', etc.
+  correctAnswer String?  @map("correct_answer")
+  mediaUrl      String?  @map("media_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  exam     Exam                  @relation(fields: [examId], references: [id], onDelete: Cascade)
+  prompts  ExamQuestionPrompt[]
+  options  ExamQuestionOption[]
+
+  @@map("exam_questions")
+}
+
+model ExamQuestionPrompt {
+  id          String   @id @default(cuid())
+  questionId  String   @map("question_id")
+  languageId  String   @map("language_id")
+  questionText String  @map("question_text")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  question ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  language Language      @relation(fields: [languageId], references: [id])
+
+  @@unique([questionId, languageId])
+  @@map("exam_question_prompts")
+}
+
+model ExamQuestionOption {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  order      Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  question    ExamQuestion                  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  translations ExamQuestionOptionTranslation[]
+
+  @@map("exam_question_options")
+}
+
+model ExamQuestionOptionTranslation {
+  id         String   @id @default(cuid())
+  optionId   String   @map("option_id")
+  languageId String   @map("language_id")
+  optionText String   @map("option_text")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  option   ExamQuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  language Language           @relation(fields: [languageId], references: [id])
+
+  @@unique([optionId, languageId])
+  @@map("exam_question_option_translations")
 }
 

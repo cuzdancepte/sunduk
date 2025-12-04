@@ -143,12 +143,32 @@ const applySequentialUnlocks = (items: PathItem[]): PathItem[] => {
   let previousStepsCompleted = true;
 
   return items.map(item => {
+    // Unlock logic: item is unlocked if previous steps are completed OR this item is already completed
     const isUnlocked = previousStepsCompleted || item.isCompleted;
-    previousStepsCompleted = previousStepsCompleted && item.isCompleted;
+    
+    // Update previousStepsCompleted: if current item is not completed, mark as false
+    if (!item.isCompleted) {
+      previousStepsCompleted = false;
+    }
+
+    // Determine stepType based on completion and unlock status
+    let stepType: 'pass' | 'lock' | 'default' | 'exam' = 'default';
+    if (item.type === 'lesson_step' || item.type === 'exercise_step') {
+      if (item.isCompleted) {
+        stepType = 'pass'; // Tamamlanmış: sarı (biten.svg)
+      } else if (isUnlocked) {
+        stepType = 'default'; // Üzerinde çalışılan: mavi/mor (mevcut.svg)
+      } else {
+        stepType = 'lock'; // Sırası gelmemiş: gri (baslamayan.svg)
+      }
+    } else if (item.type === 'trophy') {
+      stepType = 'exam'; // Trophy için exam type kullanılıyor
+    }
 
     return {
       ...item,
       isUnlocked,
+      stepType,
     };
   });
 };
@@ -184,12 +204,14 @@ export const createPathItems = (
         gridPadding,
       );
 
+      // Determine step type based on completion and unlock status
+      // This will be set correctly after all items are created and unlock logic is applied
       items.push({
         id: `lesson-${lesson.id}`,
         type: 'lesson_step',
         lessonId: lesson.id,
         unitId: unit.id,
-        stepType: lessonCompleted ? 'pass' : 'default',
+        stepType: 'default', // Will be updated based on isCompleted and isUnlocked
         icon: (lesson.iconType as StepIcon) || 'star',
         position: {
           top: verticalCursor,
@@ -197,7 +219,7 @@ export const createPathItems = (
           size: STEP_SIZE,
         },
         order: sequenceOrder++,
-        isUnlocked: true,
+        isUnlocked: false, // Will be set by applySequentialUnlocks
         isCompleted: lessonCompleted,
         metadata: {
           title: getLessonTitle(lesson, `Lesson ${lesson.order}`),
@@ -225,7 +247,7 @@ export const createPathItems = (
           exerciseId: exercise.id,
           lessonId: lesson.id,
           unitId: unit.id,
-          stepType: exerciseCompleted ? 'pass' : 'default',
+          stepType: 'default', // Will be updated based on isCompleted and isUnlocked
           icon: getExerciseIcon(exercise.type),
           position: {
             top: verticalCursor,
@@ -233,7 +255,7 @@ export const createPathItems = (
             size: STEP_SIZE,
           },
           order: sequenceOrder++,
-          isUnlocked: true,
+          isUnlocked: false, // Will be set by applySequentialUnlocks
           isCompleted: exerciseCompleted,
           metadata: {},
         });

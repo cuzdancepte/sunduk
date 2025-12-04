@@ -15,7 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Svg, { Line } from 'react-native-svg';
 import { contentAPI } from '../services/api';
 import { Level } from '../types';
@@ -44,25 +44,34 @@ const HomeScreen = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const gridPadding = theme.grid.padding.horizontal;
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const levelsData = await contentAPI.getLevels();
-        setLevels(levelsData);
-      } catch (err: any) {
-        const message = err.response?.data?.error || 'Veriler yüklenemedi';
-        setError(message);
-        Alert.alert('Hata', message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+      const levelsData = await contentAPI.getLevels();
+      setLevels(levelsData);
+    } catch (err: any) {
+      const message = err.response?.data?.error || 'Veriler yüklenemedi';
+      setError(message);
+      Alert.alert('Hata', message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // İlk yükleme
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Ekran focus olduğunda (başka ekrandan geri dönüldüğünde) verileri yeniden yükle
+  // Bu sayede ders tamamlandığında anlık olarak sarıya döner
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const pathItems = useMemo(() => {
     if (!levels.length) {
@@ -193,7 +202,7 @@ const HomeScreen = () => {
               activeOpacity={item.isUnlocked ? 0.7 : 1}
             >
               <LevelStep
-                type={stepType || (item.isUnlocked ? 'default' : 'lock')}
+                type={stepType || (item.isCompleted ? 'pass' : item.isUnlocked ? 'default' : 'lock')}
                 icon={icon || 'star'}
                 size={position.size || 0}
               />

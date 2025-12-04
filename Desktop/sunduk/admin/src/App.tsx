@@ -9,6 +9,7 @@ import Levels from './pages/Levels';
 import Units from './pages/Units';
 import Lessons from './pages/Lessons';
 import Exercises from './pages/Exercises';
+import Exams from './pages/Exams';
 import Users from './pages/Users';
 import Subscriptions from './pages/Subscriptions';
 
@@ -40,6 +41,7 @@ const AppRoutes = () => {
         <Route path="units" element={<Units />} />
         <Route path="lessons" element={<Lessons />} />
         <Route path="exercises" element={<Exercises />} />
+        <Route path="exams" element={<Exams />} />
         <Route path="users" element={<Users />} />
         <Route path="subscriptions" element={<Subscriptions />} />
       </Route>
