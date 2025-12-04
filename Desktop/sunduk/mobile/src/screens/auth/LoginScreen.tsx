@@ -2,83 +2,199 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
+  ScrollView,
+  SafeAreaView,
+  StatusBar,
+  TextInput,
+  useWindowDimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { authAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../theme/useTheme';
+import { Button, Checkbox } from '../../components/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BackButton from '../../components/BackButton';
+import HideIcon from '../../components/HideIcon';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const { setAuthenticated } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
       await authAPI.login(email, password);
+      if (rememberMe) {
+        // Remember me functionality - email'i kaydet
+        await AsyncStorage.setItem('remembered_email', email);
+      } else {
+        await AsyncStorage.removeItem('remembered_email');
+      }
       setAuthenticated(true);
       // Navigation will be handled by AppNavigator based on auth state
     } catch (error: any) {
-      Alert.alert('Giriş Hatası', error.response?.data?.error || 'Giriş yapılamadı');
+      Alert.alert('Login Error', error.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
+  // Remembered email'i yükle
+  React.useEffect(() => {
+    const loadRememberedEmail = async () => {
+      const remembered = await AsyncStorage.getItem('remembered_email');
+      if (remembered) {
+        setEmail(remembered);
+        setRememberMe(true);
+      }
+    };
+    loadRememberedEmail();
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sunduk</Text>
-      <Text style={styles.subtitle}>Türkçe Öğren</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Top Bar - Figma: y=0, height=44 */}
+        <View style={[styles.topBar, { top: insets.top }]}>
+          <TouchableOpacity
+            onPress={() => {
+              // Welcome ekranına geri dön
+              AsyncStorage.removeItem('onboarding_completed');
+            }}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <BackButton width={28} height={28} color="#212121" />
+          </TouchableOpacity>
+          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
+            9:41
+          </Text>
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 44 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header/Greeting - Figma: "Hello there 👋" */}
+          <View style={styles.headerSection}>
+            <Text style={[styles.greetingText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              Hello there 👋
+            </Text>
+          </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Şifre"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            {/* Email Input */}
+            <View style={styles.inputSection}>
+              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                Email
+              </Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[styles.input, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                  placeholder="andrew.ainsley@yourdomain.com"
+                  placeholderTextColor="#9E9E9E"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <View style={styles.inputUnderline} />
+              </View>
+            </View>
 
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Giriş Yap</Text>
-        )}
-      </TouchableOpacity>
+            {/* Password Input */}
+            <View style={styles.inputSection}>
+              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                Password
+              </Text>
+              <View style={styles.inputWrapper}>
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#9E9E9E"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeIconContainer}
+                    activeOpacity={0.7}
+                  >
+                    <HideIcon width={28} height={28} color="#6949FF" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.inputUnderline} />
+              </View>
+            </View>
 
-      <TouchableOpacity
-        style={styles.linkButton}
-        onPress={() => navigation.navigate('Register')}
-      >
-        <Text style={styles.linkText}>Hesabınız yok mu? Kayıt olun</Text>
-      </TouchableOpacity>
+            {/* Remember Me & Forgot Password */}
+            <View style={styles.optionsRow}>
+              <View style={styles.rememberMeContainer}>
+                <Checkbox
+                  checked={rememberMe}
+                  onPress={() => setRememberMe(!rememberMe)}
+                  size={24}
+                  color="#6949FF"
+                />
+                <Text style={[styles.rememberMeText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                  Remember me
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPassword')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.forgotPasswordText, { color: '#6949FF', fontFamily: theme.typography.fontFamily.bold }]}>
+                  Forgot Password?
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Sign In Button */}
+            <View style={styles.buttonContainer}>
+              <Button
+                title="SIGN IN"
+                onPress={handleLogin}
+                variant="primary"
+                size="large"
+                fullWidth
+                loading={loading}
+                disabled={loading || !email.trim() || !password.trim()}
+                style={styles.signInButton}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 };
@@ -86,55 +202,132 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  topBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 44,
+    paddingLeft: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  backButton: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
+    marginRight: 16,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-    color: '#6200ee',
+  timeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    lineHeight: 22.4,
   },
-  subtitle: {
-    fontSize: 18,
-    textAlign: 'center',
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  headerSection: {
+    marginTop: 40,
     marginBottom: 40,
-    color: '#666',
+    alignItems: 'center',
+  },
+  greetingText: {
+    fontSize: 32,
+    fontWeight: '700',
+    lineHeight: 51.2,
+    letterSpacing: 0,
+  },
+  formSection: {
+    flex: 1,
+  },
+  inputSection: {
+    gap: 16,
+    marginBottom: 32,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22.4,
+    letterSpacing: 0.2,
+  },
+  inputWrapper: {
+    gap: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 38.4,
+    letterSpacing: 0,
+    paddingVertical: 0,
+    minHeight: 38.4,
   },
-  button: {
-    backgroundColor: '#6200ee',
-    borderRadius: 8,
-    padding: 16,
+  passwordInputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'space-between',
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  passwordInput: {
+    flex: 1,
+    paddingRight: 8,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  linkButton: {
-    marginTop: 20,
+  eyeIconContainer: {
+    padding: 4,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  linkText: {
-    color: '#6200ee',
-    fontSize: 14,
+  inputUnderline: {
+    height: 1,
+    backgroundColor: '#6949FF',
+    borderRadius: 100,
+    width: '100%',
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  rememberMeText: {
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22.4,
+    letterSpacing: 0.2,
+  },
+  forgotPasswordText: {
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22.4,
+    letterSpacing: 0.2,
+  },
+  buttonContainer: {
+    marginTop: 'auto',
+    paddingBottom: 20,
+  },
+  signInButton: {
+    backgroundColor: '#6949FF',
+    borderRadius: 100,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    shadowColor: '#6949FF',
+    shadowOffset: { width: 4, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 8,
   },
 });
 
 export default LoginScreen;
-

@@ -45,6 +45,7 @@ model User {
   learningLanguage Language         @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
   progress         UserProgress[]
   subscriptions    UserSubscription[]
+  lessonCompletions UserLessonCompletion[]
 
   @@map("users")
 }
@@ -97,18 +98,21 @@ model UnitTranslation {
 }
 
 model Lesson {
-  id        String   @id @default(cuid())
-  unitId    String   @map("unit_id")
-  order     Int
-  isFree    Boolean  @default(false) @map("is_free")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(cuid())
+  unitId       String   @map("unit_id")
+  order        Int
+  isFree       Boolean  @default(false) @map("is_free")
+  passingScore Float    @default(70) @map("passing_score") // Geçme yüzdesi (0-100)
+  iconType     String?  @default("star") @map("icon_type") // Ders ikonu tipi
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
   unit         Unit                @relation(fields: [unitId], references: [id])
   translations LessonTranslation[]
   exercises    Exercise[]
   progress     UserProgress[]
+  completions  UserLessonCompletion[]
 
   @@map("lessons")
 }
@@ -208,6 +212,26 @@ model UserProgress {
 
   @@unique([userId])
   @@map("user_progress")
+}
+
+model UserLessonCompletion {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  lessonId    String   @map("lesson_id")
+  score       Float    // Percentage score (0-100)
+  correctCount Int     @map("correct_count")
+  totalCount  Int      @map("total_count")
+  completed   Boolean  @default(false)
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("user_lesson_completions")
 }
 
 model UserSubscription {

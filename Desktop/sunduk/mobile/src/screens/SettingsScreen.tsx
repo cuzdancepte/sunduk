@@ -1,215 +1,285 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
+  SafeAreaView,
   Switch,
+  ScrollView,
 } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../theme/useTheme';
+import { AppStackParamList } from '../navigation/AppStack';
 
-const SettingsScreen = () => {
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-  const [dailyGoal, setDailyGoal] = React.useState(5);
+type Props = NativeStackScreenProps<AppStackParamList, 'Settings'>;
+
+interface SettingsItem {
+  id: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
+  iconBgColor: string;
+  screen?: keyof AppStackParamList;
+  onPress?: () => void;
+  hasToggle?: boolean;
+}
+
+const SettingsScreen: React.FC<Props> = ({ navigation }) => {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const { currentLanguage, availableLanguages } = useLanguage();
+  const [darkMode, setDarkMode] = useState(false);
+  
+  // Seçili dilin adını bul
+  const currentLanguageName = availableLanguages.find(
+    (lang) => lang.code === currentLanguage
+  )?.name || 'English';
+
+  const settingsItems: SettingsItem[] = [
+    {
+      id: 'personal-info',
+      title: t('settings.personalInfo'),
+      icon: 'person-outline',
+      iconColor: '#FF9800',
+      iconBgColor: '#FFF3E0',
+      screen: 'PersonalInfo',
+    },
+    {
+      id: 'notifications',
+      title: t('settings.notification'),
+      icon: 'notifications-outline',
+      iconColor: '#F44336',
+      iconBgColor: '#FFEBEE',
+      screen: 'NotificationSettings',
+    },
+    {
+      id: 'general',
+      title: t('settings.general'),
+      icon: 'grid-outline',
+      iconColor: '#6949FF',
+      iconBgColor: 'rgba(105,73,255,0.08)',
+    },
+    {
+      id: 'app-language',
+      title: t('settings.appLanguage'),
+      icon: 'language-outline',
+      iconColor: '#2196F3',
+      iconBgColor: 'rgba(33,150,243,0.08)',
+      screen: 'LanguageSettings',
+    },
+    {
+      id: 'accessibility',
+      title: t('settings.accessibility'),
+      icon: 'accessibility-outline',
+      iconColor: '#FF9800',
+      iconBgColor: '#FFF3E0',
+      screen: 'AccessibilitySettings',
+    },
+    {
+      id: 'security',
+      title: t('settings.security'),
+      icon: 'shield-checkmark-outline',
+      iconColor: '#4CAF50',
+      iconBgColor: '#E8F5E9',
+      screen: 'SecuritySettings',
+    },
+    {
+      id: 'find-friends',
+      title: t('settings.findFriends'),
+      icon: 'people-outline',
+      iconColor: '#FF9800',
+      iconBgColor: 'rgba(255,152,0,0.08)',
+    },
+    {
+      id: 'dark-mode',
+      title: t('settings.darkMode'),
+      icon: 'eye-outline',
+      iconColor: '#246BFD',
+      iconBgColor: 'rgba(36,107,253,0.08)',
+      hasToggle: true,
+    },
+    {
+      id: 'help-center',
+      title: t('settings.helpCenter'),
+      icon: 'help-circle-outline',
+      iconColor: '#4CAF50',
+      iconBgColor: '#E8F5E9',
+      screen: 'HelpCenterFAQ',
+    },
+    {
+      id: 'about',
+      title: t('settings.aboutElingo'),
+      icon: 'information-circle-outline',
+      iconColor: '#9C27B0',
+      iconBgColor: '#F3E5F5',
+      screen: 'About',
+    },
+    {
+      id: 'logout',
+      title: t('settings.logout'),
+      icon: 'log-out-outline',
+      iconColor: '#F75555',
+      iconBgColor: 'rgba(247,85,85,0.08)',
+      onPress: () =>
+        navigation.navigate('LogoutModal', {
+          visible: true,
+        }),
+    },
+  ];
+
+  const handleItemPress = (item: SettingsItem) => {
+    if (item.screen) {
+      navigation.navigate(item.screen);
+    } else if (item.onPress) {
+      item.onPress();
+    }
+  };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.background.default },
+      ]}
+      edges={['top']}
+    >
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Ayarlar</Text>
-      </View>
-
-      {/* Notifications */}
-      <View style={styles.section}>
-        <View style={styles.settingItem}>
-          <View style={styles.settingContent}>
-            <Text style={styles.settingTitle}>Bildirimler</Text>
-            <Text style={styles.settingDescription}>
-              Günlük hatırlatmalar al
-            </Text>
-          </View>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            trackColor={{ false: '#ccc', true: '#6200ee' }}
-            thumbColor="#fff"
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons
+            name="arrow-back-outline"
+            size={24}
+            color={theme.colors.text.primary}
           />
-        </View>
+        </TouchableOpacity>
+        <Text
+          style={[
+            styles.headerTitle,
+            {
+              color: theme.colors.text.primary,
+              fontFamily: theme.typography.fontFamily.bold,
+            },
+          ]}
+        >
+          {t('settings.title')}
+        </Text>
+        <View style={styles.headerPlaceholder} />
       </View>
 
-      {/* Daily Goal */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Günlük Hedef</Text>
-        <View style={styles.goalContainer}>
-          <TouchableOpacity
-            style={[
-              styles.goalButton,
-              dailyGoal === 3 && styles.goalButtonActive,
-            ]}
-            onPress={() => setDailyGoal(3)}
-          >
-            <Text
-              style={[
-                styles.goalButtonText,
-                dailyGoal === 3 && styles.goalButtonTextActive,
-              ]}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Settings Items */}
+        <View style={styles.settingsList}>
+          {settingsItems.map(item => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => handleItemPress(item)}
+              activeOpacity={0.7}
+              style={styles.settingsItem}
             >
-              3 Ders
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.goalButton,
-              dailyGoal === 5 && styles.goalButtonActive,
-            ]}
-            onPress={() => setDailyGoal(5)}
-          >
-            <Text
-              style={[
-                styles.goalButtonText,
-                dailyGoal === 5 && styles.goalButtonTextActive,
-              ]}
-            >
-              5 Ders
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.goalButton,
-              dailyGoal === 10 && styles.goalButtonActive,
-            ]}
-            onPress={() => setDailyGoal(10)}
-          >
-            <Text
-              style={[
-                styles.goalButtonText,
-                dailyGoal === 10 && styles.goalButtonTextActive,
-              ]}
-            >
-              10 Ders
-            </Text>
-          </TouchableOpacity>
+              <View style={styles.itemLeft}>
+                <View style={[styles.iconContainer, { backgroundColor: item.iconBgColor }]}>
+                  <Ionicons name={item.icon} size={22} color={item.iconColor} />
+                </View>
+                <Text
+                  style={[
+                    styles.itemTitle,
+                    {
+                      color:
+                        item.id === 'logout'
+                          ? theme.colors.error.main
+                          : theme.colors.text.primary,
+                      fontFamily: theme.typography.fontFamily.bold,
+                    },
+                  ]}
+                >
+                  {item.title}
+                </Text>
+              </View>
+              {item.hasToggle ? (
+                <Switch
+                  value={darkMode}
+                  onValueChange={setDarkMode}
+                  trackColor={{
+                    false: '#EEEEEE',
+                    true: theme.colors.primary.main,
+                  }}
+                  thumbColor="#FFFFFF"
+                />
+              ) : item.id !== 'logout' ? (
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
+              ) : null}
+            </TouchableOpacity>
+          ))}
         </View>
-      </View>
-
-      {/* About */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Hakkında</Text>
-        <View style={styles.aboutCard}>
-          <Text style={styles.aboutText}>Sunduk v1.0.0</Text>
-          <Text style={styles.aboutSubtext}>
-            Türkçe öğrenme uygulaması
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
   },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+  headerPlaceholder: {
+    width: 40,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
   },
-  settingItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+  settingsList: {
+    gap: 16,
+  },
+  settingsItem: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingVertical: 12,
   },
-  settingContent: {
-    flex: 1,
-    marginRight: 16,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  settingDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  goalContainer: {
+  itemLeft: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  goalButton: {
+    alignItems: 'center',
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    gap: 20,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  goalButtonActive: {
-    borderColor: '#6200ee',
-    backgroundColor: '#f3e5f5',
-  },
-  goalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-  },
-  goalButtonTextActive: {
-    color: '#6200ee',
-  },
-  aboutCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  aboutText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  aboutSubtext: {
-    fontSize: 14,
-    color: '#666',
+  itemTitle: {
+    fontSize: 20,
   },
 });
 
 export default SettingsScreen;
-

@@ -1,0 +1,826 @@
+{
+  "id": "2041:27695",
+  "name": "Expression=Spirit, Component=Mascot Logo",
+  "type": "INSTANCE",
+  "position": {
+    "x": 6795.44091796875,
+    "y": 1728,
+    "width": 140.55909729003906,
+    "height": 190.01258850097656
+  },
+  "layout": {
+    "layoutMode": null,
+    "paddingLeft": 0,
+    "paddingRight": 0,
+    "paddingTop": 0,
+    "paddingBottom": 0,
+    "itemSpacing": 0,
+    "primaryAxisAlignItems": null,
+    "counterAxisAlignItems": null
+  },
+  "borderRadius": 0,
+  "fills": [],
+  "effects": [],
+  "textContent": null,
+  "textStyle": null,
+  "children": [
+    {
+      "id": "I2041:27695;2029:22896",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6906.93408203125,
+        "y": 1872.497636795044,
+        "width": 24.164447784423828,
+        "height": 27.229047775268555
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22897",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6922.978515625,
+        "y": 1870.3249444961548,
+        "width": 13.021583557128906,
+        "height": 13.003912925720215
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22898",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6795.9658203125,
+        "y": 1775.266212463379,
+        "width": 17.661529541015625,
+        "height": 57.108299255371094
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22899",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6795.44091796875,
+        "y": 1768.4436235427856,
+        "width": 12.496564865112305,
+        "height": 13.443461418151855
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22900",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6861.7958984375,
+        "y": 1892.8316631317139,
+        "width": 20.004802703857422,
+        "height": 25.180788040161133
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22901",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6824.5283203125,
+        "y": 1883.3568286895752,
+        "width": 12.49657917022705,
+        "height": 31.616804122924805
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22902",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6809.404296875,
+        "y": 1727.9998779296875,
+        "width": 115.30211639404297,
+        "height": 169.487548828125
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.4117647111415863,
+            "g": 0.2862745225429535,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22903",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6822.25830078125,
+        "y": 1825.5121536254883,
+        "width": 80.36539459228516,
+        "height": 64.63152313232422
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.40392157435417175,
+            "g": 0.22745098173618317,
+            "b": 0.7019608020782471,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22904",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6857.78515625,
+        "y": 1744.6523761749268,
+        "width": 29.592693328857422,
+        "height": 29.399747848510742
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22905",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6847.287109375,
+        "y": 1776.2416162490845,
+        "width": 8.660118103027344,
+        "height": 9.511801719665527
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22906",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6818.5009765625,
+        "y": 1819.3274993896484,
+        "width": 30.827476501464844,
+        "height": 30.801162719726562
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22907",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6823.2861328125,
+        "y": 1824.117961883545,
+        "width": 21.236543655395508,
+        "height": 21.214435577392578
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22908",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6880.38525390625,
+        "y": 1843.1287899017334,
+        "width": 30.827434539794922,
+        "height": 30.7979679107666
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22909",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6885.17041015625,
+        "y": 1847.9193477630615,
+        "width": 21.236112594604492,
+        "height": 21.211755752563477
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22910",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6894.95654296875,
+        "y": 1826.2520713806152,
+        "width": 20.0866641998291,
+        "height": 10.891117095947266
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22911",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6835.37451171875,
+        "y": 1802.1042966842651,
+        "width": 18.745939254760742,
+        "height": 13.171093940734863
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.07450980693101883,
+            "g": 0.20392157137393951,
+            "b": 0.2549019753932953,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22912",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6891.65380859375,
+        "y": 1876.1139345169067,
+        "width": 12.762821197509766,
+        "height": 8.232867240905762
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.6470588445663452,
+            "g": 0.572549045085907,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22913",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6810.10498046875,
+        "y": 1844.752802848816,
+        "width": 12.76283073425293,
+        "height": 8.230229377746582
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.6470588445663452,
+            "g": 0.572549045085907,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22914",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6851.443359375,
+        "y": 1851.9292640686035,
+        "width": 20.259309768676758,
+        "height": 14.345027923583984
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.6705882549285889,
+            "g": 0.09019608050584793,
+            "b": 0,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22915",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6855.162109375,
+        "y": 1853.3253417015076,
+        "width": 14.801103591918945,
+        "height": 6.194921970367432
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    },
+    {
+      "id": "I2041:27695;2029:22916",
+      "name": "vector",
+      "type": "VECTOR",
+      "position": {
+        "x": 6853.7646484375,
+        "y": 1859.3085460662842,
+        "width": 12.929526329040527,
+        "height": 5.92778205871582
+      },
+      "layout": {
+        "layoutMode": null,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "itemSpacing": 0,
+        "primaryAxisAlignItems": null,
+        "counterAxisAlignItems": null
+      },
+      "borderRadius": 0,
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": {
+            "r": 0.9921568632125854,
+            "g": 0.42352941632270813,
+            "b": 0.42352941632270813,
+            "a": 1
+          }
+        }
+      ],
+      "effects": [],
+      "textContent": null,
+      "textStyle": null,
+      "children": []
+    }
+  ]
+}

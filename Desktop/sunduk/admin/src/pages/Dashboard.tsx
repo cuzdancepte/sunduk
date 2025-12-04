@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Paper, Typography, Box } from '@mui/material';
+import { Grid, Paper, Typography, Box, useTheme } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import SchoolIcon from '@mui/icons-material/School';
@@ -11,9 +11,11 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.Re
   title,
   value,
   icon,
-}) => (
-  <Paper sx={{ p: 3, textAlign: 'center' }}>
-    <Box sx={{ color: '#6200ee', mb: 1 }}>{icon}</Box>
+}) => {
+  const theme = useTheme();
+  return (
+    <Paper sx={{ p: 3, textAlign: 'center' }}>
+      <Box sx={{ color: theme.palette.primary.main, mb: 1 }}>{icon}</Box>
     <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
       {value}
     </Typography>
@@ -21,7 +23,8 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.Re
       {title}
     </Typography>
   </Paper>
-);
+  );
+};
 
 const Dashboard = () => {
   const { data: users } = useQuery({

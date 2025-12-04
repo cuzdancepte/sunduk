@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   ScrollView,
 } from 'react-native';
@@ -14,10 +13,13 @@ import { RouteProp } from '@react-navigation/native';
 import { AppStackParamList } from '../navigation/AppStack';
 import { contentAPI } from '../services/api';
 import { Level, Unit } from '../types';
+import { useTheme } from '../theme/useTheme';
+import { Card, Badge, LoadingSpinner, EmptyState } from '../components/ui';
 
 type RoutePropType = RouteProp<AppStackParamList, 'LevelDetail'>;
 
 const LevelDetailScreen = () => {
+  const theme = useTheme();
   const route = useRoute<RoutePropType>();
   const navigation = useNavigation<any>();
   const { levelId } = route.params;
@@ -45,54 +47,111 @@ const LevelDetailScreen = () => {
     }
   };
 
-  const renderUnit = ({ item }: { item: Unit }) => {
+  const renderUnit = ({ item, index }: { item: Unit; index: number }) => {
     const translation = item.translations?.[0];
     const lessonCount = item.lessons?.length || 0;
     const title = translation?.title || item.slug;
 
+    // İlk ünite her zaman aktif
+    const isFirstUnit = index === 0;
+
+    // Önceki ünite tamamlanmış mı kontrol et (tüm dersleri tamamlanmış olmalı)
+    const previousUnit = level.units?.[index - 1];
+    const isPreviousUnitCompleted = previousUnit
+      ? previousUnit.lessons?.every((lesson: any) => lesson.completion?.completed) || false
+      : true; // İlk ünite için true
+
+    // Aktif olması için: ilk ünite olmalı VEYA önceki ünite tamamlanmış olmalı
+    const isActive = isFirstUnit || isPreviousUnitCompleted;
+
     return (
       <TouchableOpacity
-        style={styles.unitCard}
         onPress={() => {
-          navigation.navigate('UnitDetail', { unitId: item.id });
+          if (isActive) {
+            navigation.navigate('UnitDetail', { unitId: item.id });
+          } else {
+            Alert.alert('Kilitli', 'Önceki üniteyi tamamlamalısınız');
+          }
         }}
+        disabled={!isActive}
+        style={{ marginBottom: theme.spacing.lg }}
       >
-        <View style={styles.unitHeader}>
-          <Text style={styles.unitTitle}>{title}</Text>
-          <View style={styles.lessonBadge}>
-            <Text style={styles.lessonBadgeText}>{lessonCount} Ders</Text>
+        <Card
+          variant="elevated"
+          padding="large"
+          style={[
+            !isActive && {
+              opacity: 0.5,
+              backgroundColor: theme.colors.grey[100],
+            },
+          ]}
+        >
+          <View style={styles.unitHeader}>
+            <Text
+              style={[
+                styles.unitTitle,
+                {
+                  color: isActive ? theme.colors.text.primary : theme.colors.text.disabled,
+                  fontFamily: theme.typography.fontFamily.semiBold,
+                },
+              ]}
+            >
+              {title}
+            </Text>
+            <Badge label={`${lessonCount} Ders`} variant="primary" size="small" />
           </View>
-        </View>
-        {translation?.description && (
-          <Text style={styles.unitDescription} numberOfLines={2}>
-            {translation.description}
-          </Text>
-        )}
+          {translation?.description && (
+            <Text
+              style={[
+                styles.unitDescription,
+                {
+                  color: isActive ? theme.colors.text.secondary : theme.colors.text.disabled,
+                  fontFamily: theme.typography.fontFamily.regular,
+                },
+              ]}
+              numberOfLines={2}
+            >
+              {translation.description}
+            </Text>
+          )}
+          {!isActive && (
+            <Text
+              style={[
+                styles.lockedText,
+                {
+                  color: theme.colors.text.disabled,
+                  fontFamily: theme.typography.fontFamily.regular,
+                },
+              ]}
+            >
+              🔒 Kilitli
+            </Text>
+          )}
+        </Card>
       </TouchableOpacity>
     );
   };
 
   if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#6200ee" />
-      </View>
-    );
+    return <LoadingSpinner fullScreen text="Yükleniyor..." />;
   }
 
   if (!level) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>Seviye bulunamadı</Text>
-      </View>
+      <EmptyState
+        title="Seviye bulunamadı"
+        description="Lütfen tekrar deneyin"
+      />
     );
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.levelCode}>{level.code}</Text>
-        <Text style={styles.levelSubtitle}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background.light }]} showsVerticalScrollIndicator={false}>
+      <View style={[styles.header, { backgroundColor: theme.colors.primary.main }]}>
+        <Text style={[styles.levelCode, { color: theme.colors.text.white, fontFamily: theme.typography.fontFamily.bold }]}>
+          {level.code}
+        </Text>
+        <Text style={[styles.levelSubtitle, { color: theme.colors.text.white, fontFamily: theme.typography.fontFamily.regular }]}>
           {level.units?.length || 0} Ünite
         </Text>
       </View>
@@ -100,15 +159,16 @@ const LevelDetailScreen = () => {
       {level.units && level.units.length > 0 ? (
         <FlatList
           data={level.units}
-          renderItem={renderUnit}
+          renderItem={({ item, index }) => renderUnit({ item, index })}
           keyExtractor={(item) => item.id}
           scrollEnabled={false}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { padding: theme.spacing.lg }]}
         />
       ) : (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Bu seviyede henüz ünite yok</Text>
-        </View>
+        <EmptyState
+          title="Bu seviyede henüz ünite yok"
+          description="Yakında üniteler eklenecek"
+        />
       )}
     </ScrollView>
   );
@@ -117,42 +177,22 @@ const LevelDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
-    backgroundColor: '#6200ee',
     padding: 24,
     alignItems: 'center',
   },
   levelCode: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 8,
   },
   levelSubtitle: {
     fontSize: 16,
-    color: '#fff',
     opacity: 0.9,
   },
   list: {
-    padding: 16,
-  },
-  unitCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // Padding handled inline with theme
   },
   unitHeader: {
     flexDirection: 'row',
@@ -163,32 +203,16 @@ const styles = StyleSheet.create({
   unitTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     flex: 1,
-  },
-  lessonBadge: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  lessonBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6200ee',
   },
   unitDescription: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
   },
-  emptyState: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
+  lockedText: {
+    fontSize: 12,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
 

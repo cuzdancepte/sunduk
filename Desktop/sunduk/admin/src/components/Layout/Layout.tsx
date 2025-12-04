@@ -13,6 +13,7 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
+  useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -44,6 +45,7 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
+  const theme = useTheme();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -57,7 +59,7 @@ const Layout = () => {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', color: '#6200ee' }}>
+        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
           Sunduk Admin
         </Typography>
       </Toolbar>
@@ -70,12 +72,12 @@ const Layout = () => {
               onClick={() => navigate(item.path)}
               sx={{
                 '&.Mui-selected': {
-                  backgroundColor: '#f3e5f5',
-                  borderRight: '3px solid #6200ee',
+                  backgroundColor: theme.palette.action.selected,
+                  borderRight: `3px solid ${theme.palette.primary.main}`,
                 },
               }}
             >
-              <ListItemIcon sx={{ color: location.pathname === item.path ? '#6200ee' : 'inherit' }}>
+              <ListItemIcon sx={{ color: location.pathname === item.path ? theme.palette.primary.main : 'inherit' }}>
                 {item.icon}
               </ListItemIcon>
               <ListItemText primary={item.text} />

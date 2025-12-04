@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, SafeAreaView, StatusBar, useWindowDimensions, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme/useTheme';
 import { Button, ProgressBar } from '../../components/ui';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackButton from '../../components/BackButton';
 import HideIcon from '../../components/HideIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authAPI } from '../../services/api';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Name'>;
 
@@ -19,6 +20,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Progress: 4. ekran, toplam 5 ekran (Splash, Welcome, Language, Name, Success) = %80
   // Progress bar: 4/5 = %80, width: ~173px / 216px
@@ -149,17 +151,44 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
           <Button
             title="Continue"
             onPress={async () => {
-              // Tüm bilgileri AsyncStorage'a kaydet
-              await AsyncStorage.setItem('onboarding_name', name);
-              await AsyncStorage.setItem('onboarding_email', email);
-              await AsyncStorage.setItem('onboarding_password', password);
-              // Direkt Success ekranına git
-              navigation.navigate('Success');
+              if (!name.trim() || !email.trim() || !password.trim()) {
+                return;
+              }
+
+              setLoading(true);
+              try {
+                // AsyncStorage'dan dil bilgilerini al
+                const nativeLanguageId = await AsyncStorage.getItem('onboarding_nativeLanguageId') || 'id';
+                const appLanguageId = await AsyncStorage.getItem('onboarding_appLanguageId') || 'en';
+
+                // Backend'e kayıt isteği gönder
+                // Token otomatik olarak kaydedilecek (authAPI.register içinde)
+                await authAPI.register(
+                  email.trim(),
+                  password,
+                  name.trim(),
+                  nativeLanguageId,
+                  appLanguageId // learningLanguageId olarak kullanılıyor
+                );
+
+                // Başarılı kayıt sonrası bilgileri AsyncStorage'a kaydet (opsiyonel, backup için)
+                await AsyncStorage.setItem('onboarding_name', name.trim());
+                await AsyncStorage.setItem('onboarding_email', email.trim());
+
+                // Success ekranına git (onboarding_completed bayrağı Success ekranında ayarlanacak)
+                navigation.navigate('Success');
+              } catch (error: any) {
+                console.error('Register error:', error);
+                const errorMessage = error.response?.data?.error || error.message || 'Kayıt yapılamadı. Lütfen tekrar deneyin.';
+                Alert.alert('Kayıt Hatası', errorMessage);
+              } finally {
+                setLoading(false);
+              }
             }}
             variant="primary"
             size="large"
             fullWidth
-            disabled={!name.trim() || !email.trim() || !password.trim()}
+            disabled={!name.trim() || !email.trim() || !password.trim() || loading}
             style={styles.continueButton}
           />
         </View>

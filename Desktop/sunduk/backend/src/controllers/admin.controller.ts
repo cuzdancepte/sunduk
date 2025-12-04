@@ -231,12 +231,14 @@ export const getLessons = async (req: AuthRequest, res: Response) => {
 
 export const createLesson = async (req: AuthRequest, res: Response) => {
   try {
-    const { unitId, order, isFree, translations } = req.body;
+    const { unitId, order, isFree, passingScore, iconType, translations } = req.body;
     const lesson = await prisma.lesson.create({
       data: {
         unitId,
         order,
         isFree: isFree || false,
+        passingScore: passingScore !== undefined ? passingScore : 70,
+        iconType: iconType || 'star',
         translations: {
           create: translations || [],
         },
@@ -255,7 +257,7 @@ export const createLesson = async (req: AuthRequest, res: Response) => {
 export const updateLesson = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { unitId, order, isFree, translations } = req.body;
+    const { unitId, order, isFree, passingScore, iconType, translations } = req.body;
     
     // Delete existing translations and create new ones
     await prisma.lessonTranslation.deleteMany({
@@ -268,6 +270,8 @@ export const updateLesson = async (req: AuthRequest, res: Response) => {
         unitId,
         order,
         isFree: isFree || false,
+        passingScore: passingScore !== undefined ? passingScore : 70,
+        iconType: iconType || 'star',
         translations: {
           create: translations || [],
         },

@@ -24,6 +24,38 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
+    // Find languages by code (if code is provided) or use as ID
+    // nativeLanguageId and learningLanguageId can be either code or ID
+    const nativeLanguage = await prisma.language.findFirst({
+      where: {
+        OR: [
+          { code: nativeLanguageId },
+          { id: nativeLanguageId },
+        ],
+      },
+    });
+
+    const learningLanguage = await prisma.language.findFirst({
+      where: {
+        OR: [
+          { code: learningLanguageId },
+          { id: learningLanguageId },
+        ],
+      },
+    });
+
+    if (!nativeLanguage) {
+      return res.status(400).json({
+        error: `Native language not found: ${nativeLanguageId}`,
+      });
+    }
+
+    if (!learningLanguage) {
+      return res.status(400).json({
+        error: `Learning language not found: ${learningLanguageId}`,
+      });
+    }
+
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -33,8 +65,8 @@ export const register = async (req: Request, res: Response) => {
         email,
         passwordHash,
         username,
-        nativeLanguageId,
-        learningLanguageId,
+        nativeLanguageId: nativeLanguage.id,
+        learningLanguageId: learningLanguage.id,
       },
       select: {
         id: true,

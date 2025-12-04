@@ -5,14 +5,16 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { contentAPI } from '../services/api';
 import { Level } from '../types';
+import { useTheme } from '../theme/useTheme';
+import { Card, Badge, LoadingSpinner, EmptyState } from '../components/ui';
 
 const LearnScreen = () => {
+  const theme = useTheme();
   const navigation = useNavigation<any>();
   const [levels, setLevels] = useState<Level[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,53 +40,56 @@ const LearnScreen = () => {
     
     return (
       <TouchableOpacity
-        style={styles.levelCard}
         onPress={() => {
           navigation.navigate('App', {
             screen: 'LevelDetail',
             params: { levelId: item.id },
           });
         }}
+        style={{ marginBottom: theme.spacing.lg }}
       >
-        <View style={styles.levelHeader}>
-          <Text style={styles.levelCode}>{item.code}</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{unitCount} Ünite</Text>
+        <Card variant="elevated" padding="large">
+          <View style={styles.levelHeader}>
+            <Text style={[styles.levelCode, { color: theme.colors.primary.main, fontFamily: theme.typography.fontFamily.bold }]}>
+              {item.code}
+            </Text>
+            <Badge label={`${unitCount} Ünite`} variant="primary" size="small" />
           </View>
-        </View>
-        {translation && (
-          <Text style={styles.levelDescription} numberOfLines={2}>
-            {translation.title}
-          </Text>
-        )}
+          {translation && (
+            <Text style={[styles.levelDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]} numberOfLines={2}>
+              {translation.title}
+            </Text>
+          )}
+        </Card>
       </TouchableOpacity>
     );
   };
 
   if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#6200ee" />
-      </View>
-    );
+    return <LoadingSpinner fullScreen text="Yükleniyor..." />;
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Öğren</Text>
-        <Text style={styles.headerSubtitle}>Seviyeleri keşfet ve öğrenmeye başla</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.background.default, borderBottomColor: theme.colors.border.light }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+          Öğren
+        </Text>
+        <Text style={[styles.headerSubtitle, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
+          Seviyeleri keşfet ve öğrenmeye başla
+        </Text>
       </View>
       {levels.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Henüz seviye eklenmemiş</Text>
-        </View>
+        <EmptyState
+          title="Henüz seviye eklenmemiş"
+          description="Yakında seviyeler eklenecek"
+        />
       ) : (
         <FlatList
           data={levels}
           renderItem={renderLevel}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { padding: theme.spacing.lg }]}
         />
       )}
     </View>
@@ -94,42 +99,21 @@ const LearnScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
-    backgroundColor: '#fff',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#666',
   },
   list: {
-    padding: 16,
-  },
-  levelCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // Padding handled inline with theme
   },
   levelHeader: {
     flexDirection: 'row',
@@ -140,32 +124,10 @@ const styles = StyleSheet.create({
   levelCode: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#6200ee',
-  },
-  badge: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6200ee',
   },
   levelDescription: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
   },
 });
 

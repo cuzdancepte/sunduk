@@ -116,6 +116,8 @@ export const adminAPI = {
     unitId: string;
     order: number;
     isFree: boolean;
+    passingScore?: number;
+    iconType?: string;
     translations?: Array<{
       languageId: string;
       title: string;
@@ -128,6 +130,8 @@ export const adminAPI = {
       unitId: string;
       order: number;
       isFree: boolean;
+      passingScore?: number;
+      iconType?: string;
       translations?: Array<{
         languageId: string;
         title: string;

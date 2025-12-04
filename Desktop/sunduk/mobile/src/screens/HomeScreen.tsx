@@ -1,251 +1,348 @@
-import React, { useEffect, useState } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
   ScrollView,
-  Dimensions,
+  TouchableOpacity,
+  StatusBar,
+  useWindowDimensions,
+  Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import Svg, { Line } from 'react-native-svg';
 import { contentAPI } from '../services/api';
-import { Level, UserProgress } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { Level } from '../types';
+import { useTheme } from '../theme/useTheme';
+import { LoadingSpinner } from '../components/ui';
+import TopBar from '../components/TopBar';
+import LessonCard from '../components/LessonCard';
+import LevelStep from '../components/LevelStep';
+import Mascot from '../components/Mascot';
+import Trophy from '../components/Trophy';
+import { createPathItems, PathItem } from '../utils/learningPathUtils';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding
+const INITIAL_SCROLL_DELAY = 200;
+const CONTENT_EXTRA_HEIGHT = 64;
 
 const HomeScreen = () => {
+  const theme = useTheme();
   const navigation = useNavigation<any>();
-  const { isAuthenticated } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
   const [levels, setLevels] = useState<Level[]>([]);
-  const [progress, setProgress] = useState<UserProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const gridPadding = theme.grid.padding.horizontal;
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const levelsData = await contentAPI.getLevels();
+        setLevels(levelsData);
+      } catch (err: any) {
+        const message = err.response?.data?.error || 'Veriler yüklenemedi';
+        setError(message);
+        Alert.alert('Hata', message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, []);
 
-  const loadData = async () => {
-    try {
-      const [levelsData, progressData] = await Promise.all([
-        contentAPI.getLevels(),
-        contentAPI.getUserProgress().catch(() => null),
-      ]);
-      setLevels(levelsData);
-      setProgress(progressData);
-    } catch (error: any) {
-      Alert.alert('Hata', error.response?.data?.error || 'Veriler yüklenemedi');
-    } finally {
-      setLoading(false);
+  const pathItems = useMemo(() => {
+    if (!levels.length) {
+      return [];
     }
-  };
 
-  const renderLevel = ({ item }: { item: Level }) => {
-    const unitCount = item.units?.length || 0;
-    return (
-      <TouchableOpacity
-        style={styles.levelCard}
-        onPress={() => {
-          navigation.navigate('App', {
-            screen: 'LevelDetail',
-            params: { levelId: item.id },
-          });
-        }}
-      >
-        <View style={styles.levelCardContent}>
-          <Text style={styles.levelCode}>{item.code}</Text>
-          <Text style={styles.unitCount}>{unitCount} Ünite</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+    return createPathItems(levels, screenWidth, gridPadding);
+  }, [levels, screenWidth, gridPadding]);
 
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#6200ee" />
-      </View>
+  useEffect(() => {
+    if (pathItems.length === 0) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: false });
+    }, INITIAL_SCROLL_DELAY);
+
+    return () => clearTimeout(timeoutId);
+  }, [pathItems.length]);
+
+  const contentHeight = useMemo(() => {
+    if (pathItems.length === 0) {
+      return screenHeight;
+    }
+
+    const maxBottom = Math.max(
+      ...pathItems.map(item => item.position.top + (item.position.size || 0)),
     );
+
+    return Math.max(maxBottom + CONTENT_EXTRA_HEIGHT, screenHeight);
+  }, [pathItems, screenHeight]);
+
+  const lines = useMemo(() => {
+    const stepItems = pathItems.filter(
+      item => item.type === 'lesson_step' || item.type === 'exercise_step',
+    );
+
+    if (stepItems.length < 2) {
+      return [];
+    }
+
+    return stepItems.slice(0, -1).map((current, index) => {
+      const next = stepItems[index + 1];
+      const currentY =
+        current.position.top + (current.position.size || 0) / 2;
+      const nextY = next.position.top + (next.position.size || 0) / 2;
+
+      return {
+        x1: current.position.left,
+        y1: currentY,
+        x2: next.position.left,
+        y2: nextY,
+      };
+    });
+  }, [pathItems]);
+
+  const handlePathItemPress = useCallback(
+    (item: PathItem) => {
+      if (!item.isUnlocked) {
+        Alert.alert('Kilitli', 'Önceki adımları tamamlamanız gerekiyor.');
+        return;
+      }
+
+      if (item.type === 'unit_card' && item.unitId) {
+        navigation.navigate('App', {
+          screen: 'UnitDetail',
+          params: { unitId: item.unitId },
+        });
+        return;
+      }
+
+      if (
+        (item.type === 'lesson_step' || item.type === 'exercise_step') &&
+        item.lessonId
+      ) {
+        navigation.navigate('App', {
+          screen: 'Lesson',
+          params: { lessonId: item.lessonId },
+        });
+      }
+    },
+    [navigation],
+  );
+
+  const renderPathItem = useCallback(
+    (item: PathItem) => {
+      const { position, stepType, icon, metadata } = item;
+
+      switch (item.type) {
+        case 'unit_card':
+          return (
+            <View
+              key={item.id}
+              style={[
+                styles.unitCardWrapper,
+                {
+                  top: position.top,
+                  left: -gridPadding,
+                  width: screenWidth + gridPadding * 2,
+                },
+              ]}
+            >
+              <LessonCard
+                lessonNumber={metadata?.lessonNumber || 0}
+                title={metadata?.title || ''}
+                backgroundColor={metadata?.backgroundColor || '#6949FF'}
+                fullWidth
+                onPress={() => handlePathItemPress(item)}
+              />
+            </View>
+          );
+
+        case 'lesson_step':
+        case 'exercise_step':
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                styles.stepWrapper,
+                {
+                  top: position.top,
+                  left: position.left - (position.size || 0) / 2,
+                },
+              ]}
+              onPress={() => handlePathItemPress(item)}
+              disabled={!item.isUnlocked}
+              activeOpacity={item.isUnlocked ? 0.7 : 1}
+            >
+              <LevelStep
+                type={stepType || (item.isUnlocked ? 'default' : 'lock')}
+                icon={icon || 'star'}
+                size={position.size || 0}
+              />
+            </TouchableOpacity>
+          );
+
+        case 'mascot':
+          return (
+            <View
+              key={item.id}
+              style={[
+                styles.mascotWrapper,
+                {
+                  top: position.top,
+                  left: position.left - (position.size || 0) / 2,
+                },
+              ]}
+            >
+              <Mascot type={item.mascotType || 'default'} size={position.size || 0} />
+            </View>
+          );
+
+        case 'trophy':
+          return (
+            <View
+              key={item.id}
+              style={[
+                styles.trophyWrapper,
+                {
+                  top: position.top,
+                  left: position.left - 64,
+                },
+              ]}
+            >
+              <Trophy number={item.trophyNumber || 0} active={item.isCompleted} size={128} />
+            </View>
+          );
+
+        default:
+          return null;
+      }
+    },
+    [handlePathItemPress, gridPadding, screenWidth],
+  );
+
+  if (loading && pathItems.length === 0) {
+    return <LoadingSpinner fullScreen text="Yükleniyor..." />;
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Welcome Card */}
-      <View style={styles.welcomeCard}>
-        <Text style={styles.welcomeTitle}>Hoş Geldin! 👋</Text>
-        <Text style={styles.welcomeSubtitle}>
-          Bugün Türkçe öğrenmeye devam edelim
-        </Text>
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={theme.colors.primary.main}
+        translucent={false}
+      />
+
+      <View style={[styles.topBarContainer, { paddingTop: insets.top }]}>
+        <TopBar
+          width={screenWidth}
+          height={48}
+          language={{ code: 'EN' }}
+          challengeCount={4}
+          diamondCount={957}
+        />
       </View>
 
-      {/* Continue Learning Card */}
-      {progress?.currentLessonId && (
-        <TouchableOpacity
-          style={styles.continueCard}
-          onPress={() => {
-            if (progress.currentLessonId) {
-              navigation.navigate('App', {
-                screen: 'Lesson',
-                params: { lessonId: progress.currentLessonId },
-              });
-            }
-          }}
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            minHeight: contentHeight,
+            paddingTop: 24,
+            paddingBottom: CONTENT_EXTRA_HEIGHT,
+          },
+        ]}
+        showsVerticalScrollIndicator
+      >
+        <View
+          style={[
+            styles.contentContainer,
+            {
+              width: screenWidth,
+              minHeight: contentHeight,
+              paddingHorizontal: gridPadding,
+            },
+          ]}
         >
-          <View style={styles.continueCardContent}>
-            <Text style={styles.continueTitle}>Devam Et</Text>
-            <Text style={styles.continueSubtitle}>Kaldığın yerden devam et</Text>
-          </View>
-          <View style={styles.continueIcon}>
-            <Text style={styles.continueIconText}>→</Text>
-          </View>
-        </TouchableOpacity>
-      )}
+          {lines.length > 0 && (
+            <Svg
+              style={StyleSheet.absoluteFill}
+              width={screenWidth}
+              height={contentHeight}
+            >
+              {lines.map((line, index) => (
+                <Line
+                  key={`line-${index}`}
+                  x1={line.x1}
+                  y1={line.y1}
+                  x2={line.x2}
+                  y2={line.y2}
+                  stroke={theme.pathStyles.default.strokeColor}
+                  strokeWidth={theme.pathStyles.default.strokeWidth}
+                  strokeDasharray={theme.pathStyles.default.strokeDasharray.join(' ')}
+                  opacity={theme.pathStyles.default.opacity}
+                />
+              ))}
+            </Svg>
+          )}
 
-      {/* Levels Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Seviyeler</Text>
-        {levels.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Henüz seviye eklenmemiş</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={levels}
-            renderItem={renderLevel}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.levelsGrid}
-          />
-        )}
-      </View>
-    </ScrollView>
+          {pathItems.map(renderPathItem)}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF',
   },
-  centerContainer: {
+  topBarContainer: {
+    backgroundColor: '#6949FF',
+    zIndex: 1,
+  },
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
-  welcomeCard: {
-    backgroundColor: '#6200ee',
-    margin: 16,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+  scrollContent: {},
+  contentContainer: {
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
   },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
+  unitCardWrapper: {
+    position: 'absolute',
+    width: '100%',
   },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: '#fff',
-    opacity: 0.9,
+  stepWrapper: {
+    position: 'absolute',
   },
-  continueCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  mascotWrapper: {
+    position: 'absolute',
   },
-  continueCardContent: {
-    flex: 1,
-  },
-  continueTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  continueSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  continueIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#6200ee',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  continueIconText: {
-    fontSize: 20,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginHorizontal: 16,
-    marginBottom: 12,
-  },
-  levelsGrid: {
-    paddingHorizontal: 16,
-  },
-  levelCard: {
-    width: CARD_WIDTH,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginRight: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  levelCardContent: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  levelCode: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#6200ee',
-    marginBottom: 8,
-  },
-  unitCount: {
-    fontSize: 14,
-    color: '#666',
-  },
-  emptyState: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
+  trophyWrapper: {
+    position: 'absolute',
   },
 });
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,19 +9,29 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CompletedCharacter from '../../components/CompletedCharacter';
 import SpeechBubble from '../../components/SpeechBubble';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken } from '../../services/api';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Success'>;
 
 const SuccessScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { setAuthenticated } = useAuth();
 
-  const handleContinue = () => {
-    // Kullanıcı kayıt oldu, authentication state'ini güncelle
-    setAuthenticated(true);
-    // Navigation AppNavigator tarafından otomatik olarak yönetilecek
+  const handleContinue = async () => {
+    // Onboarding'i tamamlandı olarak işaretle
+    await AsyncStorage.setItem('onboarding_completed', 'true');
+
+    // Token'ı kontrol et ve authentication state'ini güncelle
+    const token = await getToken();
+    if (token) {
+      setAuthenticated(true);
+      // Navigation AppNavigator tarafından otomatik olarak yönetilecek
+      // Token varsa ve authenticated true ise, AppNavigator TabNavigator'ı gösterecek
+    }
   };
 
   // Content area - Figma: x=24, y=146, width=382, height=547
@@ -62,10 +73,10 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
           {/* Text Section - Figma: y=402, gap=4px */}
           <View style={styles.textSection}>
             <Text style={[styles.welcomeText, { color: '#6949FF', fontFamily: theme.typography.fontFamily.bold }]}>
-              Welcome 👋
+              {t('onboarding.success.title')}
             </Text>
             <Text style={[styles.subtitleText, { color: '#616161', fontFamily: theme.typography.fontFamily.bold }]}>
-              Your profile has been created successfully.
+              {t('onboarding.success.subtitle')}
             </Text>
           </View>
         </View>
@@ -73,7 +84,7 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
         {/* Bottom Button - Figma: absolute bottom, height=118 */}
         <View style={styles.buttonContainer}>
           <Button
-            title="CONTINUE TO HOME"
+            title={t('onboarding.success.continueToHome')}
             onPress={handleContinue}
             variant="primary"
             size="large"

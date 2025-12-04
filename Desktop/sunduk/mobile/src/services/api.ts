@@ -132,11 +132,17 @@ export const contentAPI = {
 
   updateProgress: async (
     lessonId: string,
-    completed: boolean
+    completed: boolean,
+    score?: number,
+    correctCount?: number,
+    totalCount?: number
   ): Promise<UserProgress> => {
     const response = await api.put('/content/progress', {
       lessonId,
       completed,
+      score,
+      correctCount,
+      totalCount,
     });
     return response.data;
   },

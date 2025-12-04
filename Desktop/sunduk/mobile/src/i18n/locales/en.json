@@ -1,0 +1,84 @@
+{
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "select": "Select",
+    "change": "Change"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Sunduk",
+      "subtitle": "Learn languages whenever and wherever you want. It's free and forever.",
+      "getStarted": "GET STARTED",
+      "alreadyHaveAccount": "I ALREADY HAVE AN ACCOUNT"
+    },
+    "languageSelection": {
+      "title": "Your Native Language",
+      "appLanguage": "App Language",
+      "continue": "Continue"
+    },
+    "success": {
+      "title": "Welcome 👋",
+      "subtitle": "Your profile has been created successfully.",
+      "continueToHome": "CONTINUE TO HOME"
+    }
+  },
+  "home": {
+    "title": "Home"
+  },
+  "profile": {
+    "title": "My Account",
+    "user": "User",
+    "level": "Level",
+    "dailyStreak": "Daily Streak",
+    "totalPoints": "Total Points",
+    "completedLessons": "Completed Lessons",
+    "leaderboard": "Leaderboard",
+    "goPremium": "Go Premium",
+    "settings": "Settings",
+    "helpCenter": "Help Center",
+    "logout": "Logout"
+  },
+  "settings": {
+    "title": "Settings",
+    "personalInfo": "Personal Info",
+    "notification": "Notification",
+    "general": "General",
+    "accessibility": "Accessibility",
+    "security": "Security",
+    "findFriends": "Find Friends",
+    "darkMode": "Dark Mode",
+    "appLanguage": "App Language",
+    "languageDescription": "Select the language for the app interface.",
+    "helpCenter": "Help Center",
+    "aboutElingo": "About Elingo",
+    "logout": "Logout"
+  },
+  "tabs": {
+    "home": "Home",
+    "learn": "Learn",
+    "dialog": "Dialog",
+    "profile": "Profile"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "allTime": "All Time"
+  }
+}
+

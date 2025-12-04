@@ -9,6 +9,7 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -19,6 +20,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +48,7 @@ const Login = () => {
         }}
       >
         <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h4" align="center" sx={{ mb: 3, color: '#6200ee', fontWeight: 'bold' }}>
+          <Typography component="h1" variant="h4" align="center" sx={{ mb: 3, color: theme.palette.primary.main, fontWeight: 'bold' }}>
             Sunduk Admin
           </Typography>
           <Typography component="h2" variant="h6" align="center" sx={{ mb: 3 }}>
@@ -86,7 +88,7 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2, bgcolor: '#6200ee', '&:hover': { bgcolor: '#5000d1' } }}
+              sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : 'Giriş Yap'}

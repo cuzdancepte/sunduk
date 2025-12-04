@@ -35,6 +35,8 @@ const Lessons = () => {
   const [unitId, setUnitId] = useState('');
   const [order, setOrder] = useState(0);
   const [isFree, setIsFree] = useState(false);
+  const [passingScore, setPassingScore] = useState(70);
+  const [iconType, setIconType] = useState('star');
   const [trTitle, setTrTitle] = useState('');
   const [trContent, setTrContent] = useState('');
   const [ruTitle, setRuTitle] = useState('');
@@ -89,6 +91,8 @@ const Lessons = () => {
     setUnitId('');
     setOrder(0);
     setIsFree(false);
+    setPassingScore(70);
+    setIconType('star');
     setTrTitle('');
     setTrContent('');
     setRuTitle('');
@@ -100,6 +104,8 @@ const Lessons = () => {
     setUnitId(lesson.unitId);
     setOrder(lesson.order);
     setIsFree(lesson.isFree);
+    setPassingScore(lesson.passingScore || 70);
+    setIconType(lesson.iconType || 'star');
     const trTranslation = lesson.translations?.find((t: any) => t.languageId === trLanguage?.id);
     const ruTranslation = lesson.translations?.find((t: any) => t.languageId === ruLanguage?.id);
     setTrTitle(trTranslation?.title || '');
@@ -136,6 +142,8 @@ const Lessons = () => {
       unitId,
       order,
       isFree,
+      passingScore,
+      iconType,
       translations,
     };
 
@@ -171,19 +179,20 @@ const Lessons = () => {
               <TableCell>Başlık</TableCell>
               <TableCell>Sıra</TableCell>
               <TableCell>Ücretsiz</TableCell>
+              <TableCell>Geçme Yüzdesi</TableCell>
               <TableCell>İşlemler</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   Yükleniyor...
                 </TableCell>
               </TableRow>
             ) : lessons?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   Henüz ders eklenmemiş
                 </TableCell>
               </TableRow>
@@ -197,6 +206,7 @@ const Lessons = () => {
                   </TableCell>
                   <TableCell>{lesson.order}</TableCell>
                   <TableCell>{lesson.isFree ? 'Evet' : 'Hayır'}</TableCell>
+                  <TableCell>%{lesson.passingScore || 70}</TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleEdit(lesson)} size="small">
                       <EditIcon />
@@ -248,6 +258,32 @@ const Lessons = () => {
             label="Ücretsiz Ders"
             sx={{ mb: 2 }}
           />
+          <TextField
+            margin="dense"
+            label="Geçme Yüzdesi (%)"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={passingScore}
+            onChange={(e) => setPassingScore(parseFloat(e.target.value) || 70)}
+            inputProps={{ min: 0, max: 100, step: 1 }}
+            helperText="Dersin tamamlanması için gereken minimum başarı yüzdesi (0-100)"
+            sx={{ mb: 2 }}
+          />
+          <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+            <InputLabel>İkon Tipi</InputLabel>
+            <Select
+              value={iconType}
+              onChange={(e) => setIconType(e.target.value)}
+              label="İkon Tipi"
+            >
+              <MenuItem value="star">Yıldız</MenuItem>
+              <MenuItem value="document">Doküman</MenuItem>
+              <MenuItem value="microphone">Mikrofon</MenuItem>
+              <MenuItem value="edit">Düzenle</MenuItem>
+              <MenuItem value="checkmark">Onay İşareti</MenuItem>
+            </Select>
+          </FormControl>
           <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
             Türkçe Çeviri
           </Typography>

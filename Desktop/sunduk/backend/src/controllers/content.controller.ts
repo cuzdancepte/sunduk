@@ -46,7 +46,38 @@ export const getLevels = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    res.json(levels);
+    // Get lesson completions for all lessons in all units
+    const allLessonIds = levels.flatMap((level) =>
+      level.units.flatMap((unit) => unit.lessons.map((lesson) => lesson.id))
+    );
+
+    const lessonCompletions = await prisma.userLessonCompletion.findMany({
+      where: {
+        userId,
+        lessonId: {
+          in: allLessonIds,
+        },
+      },
+    });
+
+    // Map completions by lessonId
+    const completionsMap = new Map(
+      lessonCompletions.map((completion) => [completion.lessonId, completion])
+    );
+
+    // Add completion status to each lesson
+    const levelsWithCompletions = levels.map((level) => ({
+      ...level,
+      units: level.units.map((unit) => ({
+        ...unit,
+        lessons: unit.lessons.map((lesson) => ({
+          ...lesson,
+          completion: completionsMap.get(lesson.id) || null,
+        })),
+      })),
+    }));
+
+    res.json(levelsWithCompletions);
   } catch (error) {
     console.error('Get levels error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -98,7 +129,40 @@ export const getUnit = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Unit not found' });
     }
 
-    res.json(unit);
+    // Get lesson completions for this user (only if there are lessons)
+    let lessonsWithCompletion = unit.lessons || [];
+    
+    if (lessonsWithCompletion.length > 0) {
+      try {
+        const lessonCompletions = await prisma.userLessonCompletion.findMany({
+          where: {
+            userId,
+            lessonId: {
+              in: lessonsWithCompletion.map((lesson) => lesson.id),
+            },
+          },
+        });
+
+        // Map completions by lessonId for easy lookup
+        const completionsMap = new Map(
+          lessonCompletions.map((completion) => [completion.lessonId, completion])
+        );
+
+        // Add completion status to each lesson
+        lessonsWithCompletion = lessonsWithCompletion.map((lesson) => ({
+          ...lesson,
+          completion: completionsMap.get(lesson.id) || null,
+        }));
+      } catch (error) {
+        console.error('Error fetching lesson completions:', error);
+        // Continue without completions if there's an error
+      }
+    }
+
+    res.json({
+      ...unit,
+      lessons: lessonsWithCompletion,
+    });
   } catch (error) {
     console.error('Get unit error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -228,12 +292,13 @@ export const getUserProgress = async (req: AuthRequest, res: Response) => {
 export const updateProgress = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
-    const { lessonId, completed } = req.body;
+    const { lessonId, completed, score, correctCount, totalCount } = req.body;
 
     if (!userId) {
       return res.status(401).json({ error: 'User authentication required' });
     }
 
+    // Update general user progress
     const progress = await prisma.userProgress.upsert({
       where: { userId },
       update: {
@@ -246,6 +311,34 @@ export const updateProgress = async (req: AuthRequest, res: Response) => {
         completedAt: completed ? new Date() : null,
       },
     });
+
+    // Save lesson completion record
+    if (lessonId && score !== undefined && correctCount !== undefined && totalCount !== undefined) {
+      await prisma.userLessonCompletion.upsert({
+        where: {
+          userId_lessonId: {
+            userId,
+            lessonId,
+          },
+        },
+        update: {
+          score,
+          correctCount,
+          totalCount,
+          completed,
+          completedAt: completed ? new Date() : null,
+        },
+        create: {
+          userId,
+          lessonId,
+          score,
+          correctCount,
+          totalCount,
+          completed,
+          completedAt: completed ? new Date() : null,
+        },
+      });
+    }
 
     res.json(progress);
   } catch (error) {

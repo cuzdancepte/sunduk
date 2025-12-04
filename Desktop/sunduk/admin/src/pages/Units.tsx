@@ -169,19 +169,20 @@ const Units = () => {
               <TableCell>Slug</TableCell>
               <TableCell>Sıra</TableCell>
               <TableCell>Başlık (TR)</TableCell>
+              <TableCell>Başlık (RU)</TableCell>
               <TableCell>İşlemler</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   Yükleniyor...
                 </TableCell>
               </TableRow>
             ) : units?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   Henüz ünite eklenmemiş
                 </TableCell>
               </TableRow>
@@ -194,6 +195,9 @@ const Units = () => {
                   <TableCell>{unit.order}</TableCell>
                   <TableCell>
                     {unit.translations?.find((t: any) => t.languageId === trLanguage?.id)?.title || '-'}
+                  </TableCell>
+                  <TableCell>
+                    {unit.translations?.find((t: any) => t.languageId === ruLanguage?.id)?.title || '-'}
                   </TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleEdit(unit)} size="small">

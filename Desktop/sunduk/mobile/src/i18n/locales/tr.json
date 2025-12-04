@@ -1,0 +1,84 @@
+{
+  "common": {
+    "continue": "Devam Et",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "confirm": "Onayla",
+    "back": "Geri",
+    "next": "İleri",
+    "previous": "Önceki",
+    "close": "Kapat",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "sort": "Sırala",
+    "select": "Seç",
+    "change": "Değiştir"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Sunduk",
+      "subtitle": "Learn languages whenever and wherever you want. It's free and forever.",
+      "getStarted": "GET STARTED",
+      "alreadyHaveAccount": "I ALREADY HAVE AN ACCOUNT"
+    },
+    "languageSelection": {
+      "title": "Your Native Language",
+      "appLanguage": "App Language",
+      "continue": "Continue"
+    },
+    "success": {
+      "title": "Welcome 👋",
+      "subtitle": "Your profile has been created successfully.",
+      "continueToHome": "CONTINUE TO HOME"
+    }
+  },
+  "home": {
+    "title": "Ana Sayfa"
+  },
+  "profile": {
+    "title": "Hesabım",
+    "user": "Kullanıcı",
+    "level": "Seviye",
+    "dailyStreak": "Günlük Seri",
+    "totalPoints": "Toplam Puan",
+    "completedLessons": "Tamamlanan Ders",
+    "leaderboard": "Liderlik Tablosu",
+    "goPremium": "Premium'a Geç",
+    "settings": "Ayarlar",
+    "helpCenter": "Yardım Merkezi",
+    "logout": "Çıkış Yap"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "personalInfo": "Kişisel Bilgiler",
+    "notification": "Bildirimler",
+    "general": "Genel",
+    "accessibility": "Erişilebilirlik",
+    "security": "Güvenlik",
+    "findFriends": "Arkadaş Bul",
+    "darkMode": "Karanlık Mod",
+    "appLanguage": "Uygulama Dili",
+    "languageDescription": "Uygulama arayüzünün görüntüleneceği dili seçin.",
+    "helpCenter": "Yardım Merkezi",
+    "aboutElingo": "Elingo Hakkında",
+    "logout": "Çıkış Yap"
+  },
+  "tabs": {
+    "home": "Ana Sayfa",
+    "learn": "Öğren",
+    "dialog": "Dialog",
+    "profile": "Profil"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "allTime": "All Time"
+  }
+}
+

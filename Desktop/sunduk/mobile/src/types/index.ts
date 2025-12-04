@@ -43,8 +43,11 @@ export interface Lesson {
   unitId: string;
   order: number;
   isFree: boolean;
+  passingScore?: number; // Geçme yüzdesi (default: 70)
+  iconType?: string; // Ders ikonu tipi (default: 'star')
   translations?: LessonTranslation[];
   exercises?: Exercise[];
+  completion?: UserLessonCompletion | null;
 }
 
 export interface LessonTranslation {
@@ -91,6 +94,17 @@ export interface UserProgress {
   id: string;
   userId: string;
   currentLessonId?: string;
+  completedAt?: string;
+}
+
+export interface UserLessonCompletion {
+  id: string;
+  userId: string;
+  lessonId: string;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  completed: boolean;
   completedAt?: string;
 }
 
