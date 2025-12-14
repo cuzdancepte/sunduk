@@ -28,6 +28,11 @@ model Language {
   examTranslations ExamTranslation[]
   examQuestionPrompts ExamQuestionPrompt[]
   examQuestionOptionTranslations ExamQuestionOptionTranslation[]
+  dialogTranslations DialogTranslation[]
+  dialogCharacterTranslations DialogCharacterTranslation[]
+  dialogMessageTranslations DialogMessageTranslation[]
+  dialogQuestionPrompts DialogQuestionPrompt[]
+  dialogQuestionOptionTranslations DialogQuestionOptionTranslation[]
 
   @@map("languages")
 }
@@ -49,6 +54,7 @@ model User {
   progress         UserProgress[]
   subscriptions    UserSubscription[]
   lessonCompletions UserLessonCompletion[]
+  examCompletions  UserExamCompletion[]
 
   @@map("users")
 }
@@ -62,6 +68,7 @@ model Level {
 
   // Relations
   units Unit[]
+  dialogs Dialog[]
 
   @@map("levels")
 }
@@ -79,6 +86,7 @@ model Unit {
   lessons       Lesson[]
   translations  UnitTranslation[]
   exams         Exam[]
+  dialogs       Dialog[]
 
   @@unique([levelId, slug])
   @@map("units")
@@ -115,6 +123,8 @@ model Lesson {
   unit         Unit                @relation(fields: [unitId], references: [id])
   translations LessonTranslation[]
   exercises    Exercise[]
+  exams        Exam[]              // Sınavlar bu dersin sonrasına yerleşir
+  dialogs      Dialog[]            // Dialog'lar bu derse bağlı olabilir
   progress     UserProgress[]
   completions  UserLessonCompletion[]
 
@@ -238,6 +248,26 @@ model UserLessonCompletion {
   @@map("user_lesson_completions")
 }
 
+model UserExamCompletion {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  examId     String   @map("exam_id")
+  score       Float    // Percentage score (0-100)
+  correctCount Int     @map("correct_count")
+  totalCount  Int      @map("total_count")
+  completed   Boolean  @default(false)
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, examId])
+  @@map("user_exam_completions")
+}
+
 model UserSubscription {
   id        String    @id @default(cuid())
   userId    String    @map("user_id")
@@ -256,6 +286,7 @@ model UserSubscription {
 model Exam {
   id           String   @id @default(cuid())
   unitId       String   @map("unit_id")
+  lessonId     String?  @map("lesson_id") // Optional: Eğer belirtilirse sınav o dersin sonrasına yerleşir
   order        Int
   passingScore Float    @default(70) @map("passing_score") // Geçme yüzdesi (0-100)
   createdAt    DateTime @default(now()) @map("created_at")
@@ -263,8 +294,10 @@ model Exam {
 
   // Relations
   unit         Unit              @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  lesson       Lesson?           @relation(fields: [lessonId], references: [id], onDelete: SetNull)
   translations ExamTranslation[]
   questions    ExamQuestion[]
+  completions  UserExamCompletion[]
 
   @@map("exams")
 }
@@ -348,5 +381,175 @@ model ExamQuestionOptionTranslation {
 
   @@unique([optionId, languageId])
   @@map("exam_question_option_translations")
+}
+
+// Dialog Models
+model Dialog {
+  id          String   @id @default(cuid())
+  unitId      String?  @map("unit_id")
+  lessonId    String?  @map("lesson_id")
+  levelId     String?  @map("level_id")
+  order       Int
+  isFree      Boolean  @default(false) @map("is_free")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  unit         Unit?              @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  lesson       Lesson?            @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  level        Level?             @relation(fields: [levelId], references: [id], onDelete: SetNull)
+  translations DialogTranslation[]
+  characters   DialogCharacter[]
+  messages     DialogMessage[]
+  questions    DialogQuestion[]
+
+  @@map("dialogs")
+}
+
+model DialogTranslation {
+  id          String   @id @default(cuid())
+  dialogId    String   @map("dialog_id")
+  languageId  String   @map("language_id")
+  title       String
+  description String?
+  scenario    String?  // Senaryo açıklaması
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dialog   Dialog   @relation(fields: [dialogId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([dialogId, languageId])
+  @@map("dialog_translations")
+}
+
+model DialogCharacter {
+  id        String   @id @default(cuid())
+  dialogId  String   @map("dialog_id")
+  order     Int      @default(0)
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dialog       Dialog                    @relation(fields: [dialogId], references: [id], onDelete: Cascade)
+  translations DialogCharacterTranslation[]
+  messages     DialogMessage[]
+
+  @@map("dialog_characters")
+}
+
+model DialogCharacterTranslation {
+  id         String   @id @default(cuid())
+  characterId String   @map("character_id")
+  languageId String   @map("language_id")
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  character DialogCharacter @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  language  Language        @relation(fields: [languageId], references: [id])
+
+  @@unique([characterId, languageId])
+  @@map("dialog_character_translations")
+}
+
+model DialogMessage {
+  id         String   @id @default(cuid())
+  dialogId   String   @map("dialog_id")
+  characterId String   @map("character_id")
+  order      Int      @default(0)
+  audioUrl   String?  @map("audio_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dialog      Dialog                @relation(fields: [dialogId], references: [id], onDelete: Cascade)
+  character   DialogCharacter       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  translations DialogMessageTranslation[]
+
+  @@map("dialog_messages")
+}
+
+model DialogMessageTranslation {
+  id         String   @id @default(cuid())
+  messageId  String   @map("message_id")
+  languageId String   @map("language_id")
+  text       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  message  DialogMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  language Language      @relation(fields: [languageId], references: [id])
+
+  @@unique([messageId, languageId])
+  @@map("dialog_message_translations")
+}
+
+model DialogQuestion {
+  id            String   @id @default(cuid())
+  dialogId      String   @map("dialog_id")
+  order         Int      @default(0)
+  type          String   // 'multiple_choice', 'fill_blank', 'matching', etc.
+  correctAnswer String?  @map("correct_answer")
+  mediaUrl      String?  @map("media_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dialog    Dialog                @relation(fields: [dialogId], references: [id], onDelete: Cascade)
+  prompts   DialogQuestionPrompt[]
+  options   DialogQuestionOption[]
+
+  @@map("dialog_questions")
+}
+
+model DialogQuestionPrompt {
+  id          String   @id @default(cuid())
+  questionId  String   @map("question_id")
+  languageId  String   @map("language_id")
+  questionText String  @map("question_text")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  question DialogQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  language Language        @relation(fields: [languageId], references: [id])
+
+  @@unique([questionId, languageId])
+  @@map("dialog_question_prompts")
+}
+
+model DialogQuestionOption {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  order      Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  question    DialogQuestion                @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  translations DialogQuestionOptionTranslation[]
+
+  @@map("dialog_question_options")
+}
+
+model DialogQuestionOptionTranslation {
+  id         String   @id @default(cuid())
+  optionId   String   @map("option_id")
+  languageId String   @map("language_id")
+  optionText String   @map("option_text")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  option   DialogQuestionOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  language Language             @relation(fields: [languageId], references: [id])
+
+  @@unique([optionId, languageId])
+  @@map("dialog_question_option_translations")
 }
 

@@ -39,6 +39,7 @@ const Exams = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [unitId, setUnitId] = useState('');
+  const [lessonId, setLessonId] = useState('');
   const [order, setOrder] = useState(0);
   const [passingScore, setPassingScore] = useState(70);
   const [trTitle, setTrTitle] = useState('');
@@ -62,6 +63,12 @@ const Exams = () => {
   const { data: units } = useQuery({
     queryKey: ['units'],
     queryFn: () => adminAPI.getUnits().then((res) => res.data),
+  });
+
+  const { data: lessons } = useQuery({
+    queryKey: ['lessons', unitId],
+    queryFn: () => adminAPI.getLessons(unitId).then((res) => res.data),
+    enabled: !!unitId,
   });
 
   const { data: languages } = useQuery({
@@ -139,6 +146,7 @@ const Exams = () => {
   const resetForm = () => {
     setEditingId(null);
     setUnitId('');
+    setLessonId('');
     setOrder(0);
     setPassingScore(70);
     setTrTitle('');
@@ -164,6 +172,7 @@ const Exams = () => {
     try {
       setEditingId(exam.id);
       setUnitId(exam.unitId);
+      setLessonId(exam.lessonId || '');
       setOrder(exam.order);
       setPassingScore(exam.passingScore || 70);
       
@@ -246,6 +255,7 @@ const Exams = () => {
 
     const data = {
       unitId,
+      lessonId: lessonId || undefined,
       order: Number(order),
       passingScore: Number(passingScore),
       translations: [
@@ -383,6 +393,18 @@ const Exams = () => {
     setMatchingPairs(matchingPairs.filter((_, i) => i !== index));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const result = await adminAPI.uploadImage(file);
+        setQuestionMediaUrl(`http://localhost:3001${result.url}`);
+      } catch (error: any) {
+        alert(error.response?.data?.error || 'Dosya yüklenirken bir hata oluştu');
+      }
+    }
+  };
+
   const getUnitName = (unitId: string) => {
     const unit = units?.find((u: any) => u.id === unitId);
     return unit?.translations?.[0]?.title || unitId;
@@ -434,15 +456,46 @@ const Exams = () => {
           required
         />
 
-        {(questionType === 'listening') && (
+        <Box sx={{ mb: 2 }}>
           <TextField
-            label="Ses Dosyası URL"
+            margin="dense"
+            label="Media URL (opsiyonel)"
+            fullWidth
+            variant="outlined"
             value={questionMediaUrl}
             onChange={(e) => setQuestionMediaUrl(e.target.value)}
-            fullWidth
-            helperText="Dinleme sorusu için ses dosyası URL'si"
+            sx={{ mb: 1 }}
+            helperText={
+              questionType === 'listening' 
+                ? 'Dinleme sorusu için ses dosyası URL\'si' 
+                : 'Görsel veya medya URL\'si'
+            }
           />
-        )}
+          <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+            veya
+          </Typography>
+          <input
+            accept="image/*"
+            style={{ display: 'none' }}
+            id="question-image-upload"
+            type="file"
+            onChange={handleImageUpload}
+          />
+          <label htmlFor="question-image-upload">
+            <Button variant="outlined" component="span" size="small" fullWidth>
+              Dosya Seç
+            </Button>
+          </label>
+          {questionMediaUrl && (
+            <Box sx={{ mt: 2 }}>
+              <img
+                src={questionMediaUrl}
+                alt="Preview"
+                style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }}
+              />
+            </Box>
+          )}
+        </Box>
 
         <Typography variant="h6" sx={{ mt: 1 }}>
           Soru Metni
@@ -696,7 +749,10 @@ const Exams = () => {
               <InputLabel>Ünite</InputLabel>
               <Select
                 value={unitId}
-                onChange={(e) => setUnitId(e.target.value)}
+                onChange={(e) => {
+                  setUnitId(e.target.value);
+                  setLessonId(''); // Unit değişince lesson'ı sıfırla
+                }}
                 label="Ünite"
               >
                 {units?.map((unit: any) => (
@@ -707,6 +763,44 @@ const Exams = () => {
               </Select>
             </FormControl>
 
+            <FormControl fullWidth>
+              <InputLabel>Ders (Opsiyonel)</InputLabel>
+              <Select
+                value={lessonId}
+                onChange={(e) => {
+                  const selectedLessonId = e.target.value;
+                  setLessonId(selectedLessonId);
+                  // Eğer ders seçildiyse, o dersin order'ından sonra bir değer hesapla
+                  if (selectedLessonId && lessons) {
+                    const selectedLesson = lessons.find((l: any) => l.id === selectedLessonId);
+                    if (selectedLesson) {
+                      // O dersin order'ından sonra (örneğin order + 0.5 mantığıyla, ama order Int olduğu için order + 1)
+                      // Aynı lesson'a bağlı diğer exam'leri kontrol et
+                      const sameLessonExams = exams?.filter((e: any) => e.lessonId === selectedLessonId && e.id !== editingId) || [];
+                      const maxOrder = sameLessonExams.length > 0 
+                        ? Math.max(...sameLessonExams.map((e: any) => e.order))
+                        : selectedLesson.order;
+                      setOrder(maxOrder + 1);
+                    }
+                  }
+                }}
+                label="Ders (Opsiyonel)"
+                disabled={!unitId}
+              >
+                <MenuItem value="">
+                  <em>Ders seçilmezse unit sonuna yerleşir</em>
+                </MenuItem>
+                {lessons?.map((lesson: any) => (
+                  <MenuItem key={lesson.id} value={lesson.id}>
+                    {lesson.translations?.[0]?.title || `Ders ${lesson.order}`} (Sıra: {lesson.order})
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary' }}>
+                Ders seçilirse sınav o dersin sonrasına, seçilmezse unit'in sonuna yerleşir
+              </Typography>
+            </FormControl>
+
             <TextField
               label="Sıra"
               type="number"
@@ -714,6 +808,9 @@ const Exams = () => {
               onChange={(e) => setOrder(Number(e.target.value))}
               fullWidth
               required
+              helperText={lessonId 
+                ? "Aynı derse bağlı sınavlar arasındaki sıralama" 
+                : "Unit sonundaki sınavlar arasındaki sıralama"}
             />
 
             <TextField

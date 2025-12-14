@@ -31,6 +31,14 @@ import {
   createExamQuestion,
   updateExamQuestion,
   deleteExamQuestion,
+  getDialogs,
+  getDialog,
+  createDialog,
+  updateDialog,
+  deleteDialog,
+  createDialogQuestion,
+  updateDialogQuestion,
+  deleteDialogQuestion,
   getUsers,
   getUserSubscriptions,
   createSubscription,
@@ -84,6 +92,18 @@ router.delete('/exams/:id', deleteExam);
 router.post('/exams/:examId/questions', createExamQuestion);
 router.put('/exam-questions/:id', updateExamQuestion);
 router.delete('/exam-questions/:id', deleteExamQuestion);
+
+// Dialogs
+router.get('/dialogs', getDialogs);
+router.get('/dialogs/:id', getDialog);
+router.post('/dialogs', createDialog);
+router.put('/dialogs/:id', updateDialog);
+router.delete('/dialogs/:id', deleteDialog);
+
+// Dialog Questions
+router.post('/dialogs/:dialogId/questions', createDialogQuestion);
+router.put('/dialog-questions/:id', updateDialogQuestion);
+router.delete('/dialog-questions/:id', deleteDialogQuestion);
 
 // Users
 router.get('/users', getUsers);

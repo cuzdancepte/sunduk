@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthResponse, Level, Unit, Lesson, UserProgress } from '../types';
+import { AuthResponse, Level, Unit, Lesson, Exam, UserProgress, Dialog } from '../types';
 
 // For physical device/emulator, use your computer's IP address
 // Change this to your computer's IP address (check with: ipconfig)
@@ -125,6 +125,11 @@ export const contentAPI = {
     return response.data;
   },
 
+  getExam: async (examId: string): Promise<Exam> => {
+    const response = await api.get(`/content/exam/${examId}`);
+    return response.data;
+  },
+
   getUserProgress: async (): Promise<UserProgress> => {
     const response = await api.get('/content/progress');
     return response.data;
@@ -144,6 +149,33 @@ export const contentAPI = {
       correctCount,
       totalCount,
     });
+    return response.data;
+  },
+
+  updateExamProgress: async (
+    examId: string,
+    completed: boolean,
+    score?: number,
+    correctCount?: number,
+    totalCount?: number
+  ): Promise<{ message: string }> => {
+    const response = await api.put('/content/exam-progress', {
+      examId,
+      completed,
+      score,
+      correctCount,
+      totalCount,
+    });
+    return response.data;
+  },
+
+  getDialogs: async (): Promise<Dialog[]> => {
+    const response = await api.get('/content/dialogs');
+    return response.data;
+  },
+
+  getDialog: async (dialogId: string): Promise<Dialog> => {
+    const response = await api.get(`/content/dialog/${dialogId}`);
     return response.data;
   },
 };

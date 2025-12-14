@@ -256,6 +256,115 @@ export const adminAPI = {
   ) => api.put(`/admin/exam-questions/${id}`, data),
   deleteExamQuestion: (id: string) => api.delete(`/admin/exam-questions/${id}`),
 
+  // Dialogs
+  getDialogs: () => api.get('/admin/dialogs'),
+  getDialog: (id: string) => api.get(`/admin/dialogs/${id}`),
+  createDialog: (data: {
+    unitId?: string;
+    lessonId?: string;
+    levelId?: string;
+    order: number;
+    isFree?: boolean;
+    translations?: Array<{
+      languageId: string;
+      title: string;
+      description?: string;
+      scenario?: string;
+    }>;
+    characters?: Array<{
+      order: number;
+      avatarUrl?: string;
+      translations?: Array<{
+        languageId: string;
+        name: string;
+      }>;
+    }>;
+    messages?: Array<{
+      characterId: string;
+      order: number;
+      audioUrl?: string;
+      translations?: Array<{
+        languageId: string;
+        text: string;
+      }>;
+    }>;
+  }) => api.post('/admin/dialogs', data),
+  updateDialog: (
+    id: string,
+    data: {
+      unitId?: string;
+      lessonId?: string;
+      levelId?: string;
+      order: number;
+      isFree?: boolean;
+      translations?: Array<{
+        languageId: string;
+        title: string;
+        description?: string;
+        scenario?: string;
+      }>;
+      characters?: Array<{
+        order: number;
+        avatarUrl?: string;
+        translations?: Array<{
+          languageId: string;
+          name: string;
+        }>;
+      }>;
+      messages?: Array<{
+        characterId: string;
+        order: number;
+        audioUrl?: string;
+        translations?: Array<{
+          languageId: string;
+          text: string;
+        }>;
+      }>;
+    }
+  ) => api.put(`/admin/dialogs/${id}`, data),
+  deleteDialog: (id: string) => api.delete(`/admin/dialogs/${id}`),
+
+  // Dialog Questions
+  createDialogQuestion: (dialogId: string, data: {
+    type: string;
+    order: number;
+    correctAnswer?: string;
+    mediaUrl?: string;
+    prompts?: Array<{
+      languageId: string;
+      questionText: string;
+    }>;
+    options?: Array<{
+      order: number;
+      translations?: Array<{
+        languageId: string;
+        optionText: string;
+      }>;
+    }>;
+  }) => api.post(`/admin/dialogs/${dialogId}/questions`, data),
+  updateDialogQuestion: (
+    id: string,
+    data: {
+      dialogId: string;
+      type: string;
+      order: number;
+      correctAnswer?: string;
+      mediaUrl?: string;
+      prompts?: Array<{
+        languageId: string;
+        questionText: string;
+      }>;
+      options?: Array<{
+        order: number;
+        translations?: Array<{
+          languageId: string;
+          optionText: string;
+        }>;
+      }>;
+    }
+  ) => api.put(`/admin/dialog-questions/${id}`, data),
+  deleteDialogQuestion: (id: string) => api.delete(`/admin/dialog-questions/${id}`),
+
   // Upload
   uploadImage: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData();

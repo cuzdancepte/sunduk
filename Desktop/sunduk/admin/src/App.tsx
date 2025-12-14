@@ -10,6 +10,7 @@ import Units from './pages/Units';
 import Lessons from './pages/Lessons';
 import Exercises from './pages/Exercises';
 import Exams from './pages/Exams';
+import Dialogs from './pages/Dialogs';
 import Users from './pages/Users';
 import Subscriptions from './pages/Subscriptions';
 
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="lessons" element={<Lessons />} />
         <Route path="exercises" element={<Exercises />} />
         <Route path="exams" element={<Exams />} />
+        <Route path="dialogs" element={<Dialogs />} />
         <Route path="users" element={<Users />} />
         <Route path="subscriptions" element={<Subscriptions />} />
       </Route>

@@ -562,11 +562,12 @@ export const getExam = async (req: AuthRequest, res: Response) => {
 
 export const createExam = async (req: AuthRequest, res: Response) => {
   try {
-    const { unitId, order, passingScore, translations } = req.body;
+    const { unitId, lessonId, order, passingScore, translations } = req.body;
 
     const exam = await prisma.exam.create({
       data: {
         unitId,
+        lessonId: lessonId || null,
         order: parseInt(order),
         passingScore: passingScore ? parseFloat(passingScore) : 70,
         translations: {
@@ -596,7 +597,7 @@ export const createExam = async (req: AuthRequest, res: Response) => {
 export const updateExam = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { unitId, order, passingScore, translations } = req.body;
+    const { unitId, lessonId, order, passingScore, translations } = req.body;
 
     // First, delete existing translations
     await prisma.examTranslation.deleteMany({
@@ -607,6 +608,7 @@ export const updateExam = async (req: AuthRequest, res: Response) => {
       where: { id },
       data: {
         unitId,
+        lessonId: lessonId || null,
         order: parseInt(order),
         passingScore: passingScore ? parseFloat(passingScore) : 70,
         translations: {
@@ -856,6 +858,607 @@ export const createSubscription = async (req: AuthRequest, res: Response) => {
     res.status(201).json(subscription);
   } catch (error) {
     console.error('Create subscription error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Dialogs CRUD
+export const getDialogs = async (req: AuthRequest, res: Response) => {
+  try {
+    const dialogs = await prisma.dialog.findMany({
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        lesson: {
+          include: {
+            translations: true,
+          },
+        },
+        level: true,
+        translations: true,
+        characters: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        messages: {
+          include: {
+            character: {
+              include: {
+                translations: true,
+              },
+            },
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+      orderBy: { order: 'asc' },
+    });
+    res.json(dialogs);
+  } catch (error) {
+    console.error('Get dialogs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getDialog = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const dialog = await prisma.dialog.findUnique({
+      where: { id },
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        lesson: {
+          include: {
+            translations: true,
+          },
+        },
+        level: true,
+        translations: true,
+        characters: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        messages: {
+          include: {
+            character: {
+              include: {
+                translations: true,
+              },
+            },
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    if (!dialog) {
+      return res.status(404).json({ error: 'Dialog not found' });
+    }
+    res.json(dialog);
+  } catch (error) {
+    console.error('Get dialog error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const createDialog = async (req: AuthRequest, res: Response) => {
+  try {
+    const {
+      unitId,
+      lessonId,
+      levelId,
+      order,
+      isFree,
+      translations,
+      characters,
+      messages,
+    } = req.body;
+
+    // First create dialog with translations and characters
+    const dialog = await prisma.dialog.create({
+      data: {
+        unitId: unitId || null,
+        lessonId: lessonId || null,
+        levelId: levelId || null,
+        order: parseInt(order) || 0,
+        isFree: isFree || false,
+        translations: {
+          create: translations || [],
+        },
+        characters: {
+          create:
+            characters?.map((char: any) => ({
+              order: char.order || 0,
+              avatarUrl: char.avatarUrl || null,
+              translations: {
+                create: char.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        characters: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    // Create a map of temp character IDs to real character IDs
+    const characterIdMap = new Map<string, string>();
+    if (characters && dialog.characters) {
+      characters.forEach((char: any, index: number) => {
+        const realChar = dialog.characters[index];
+        if (realChar) {
+          // Map by temp ID if provided
+          if (char.id) {
+            characterIdMap.set(char.id, realChar.id);
+          }
+          // Also map by index as fallback
+          characterIdMap.set(`temp-${index}`, realChar.id);
+          // Map by order as well
+          characterIdMap.set(`temp-${char.order || index}`, realChar.id);
+        }
+      });
+    }
+
+    // Now create messages with correct character IDs
+    if (messages && messages.length > 0) {
+      await prisma.dialogMessage.createMany({
+        data: messages.map((msg: any) => {
+          // Find the correct character ID
+          let characterId = msg.characterId;
+          if (characterIdMap.has(msg.characterId)) {
+            characterId = characterIdMap.get(msg.characterId)!;
+          } else {
+            // Fallback: use first character if ID not found
+            characterId = dialog.characters[0]?.id || '';
+          }
+
+          return {
+            dialogId: dialog.id,
+            characterId: characterId,
+            order: msg.order || 0,
+            audioUrl: msg.audioUrl || null,
+          };
+        }),
+      });
+
+      // Create message translations
+      for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+        let characterId = msg.characterId;
+        if (characterIdMap.has(msg.characterId)) {
+          characterId = characterIdMap.get(msg.characterId)!;
+        } else {
+          characterId = dialog.characters[0]?.id || '';
+        }
+
+        const createdMessage = await prisma.dialogMessage.findFirst({
+          where: {
+            dialogId: dialog.id,
+            characterId: characterId,
+            order: msg.order || i,
+          },
+        });
+
+        if (createdMessage && msg.translations) {
+          await prisma.dialogMessageTranslation.createMany({
+            data: msg.translations.map((trans: any) => ({
+              messageId: createdMessage.id,
+              languageId: trans.languageId,
+              text: trans.text,
+            })),
+          });
+        }
+      }
+    }
+
+    // Fetch the complete dialog with all relations
+    const completeDialog = await prisma.dialog.findUnique({
+      where: { id: dialog.id },
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        lesson: {
+          include: {
+            translations: true,
+          },
+        },
+        level: true,
+        translations: true,
+        characters: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        messages: {
+          include: {
+            character: {
+              include: {
+                translations: true,
+              },
+            },
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    res.status(201).json(completeDialog);
+  } catch (error) {
+    console.error('Create dialog error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateDialog = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      unitId,
+      lessonId,
+      levelId,
+      order,
+      isFree,
+      translations,
+      characters,
+      messages,
+    } = req.body;
+
+    // Delete existing related data
+    await prisma.dialogTranslation.deleteMany({
+      where: { dialogId: id },
+    });
+    await prisma.dialogMessage.deleteMany({
+      where: { dialogId: id },
+    });
+    await prisma.dialogCharacter.deleteMany({
+      where: { dialogId: id },
+    });
+
+    // First update dialog with translations and characters
+    const dialog = await prisma.dialog.update({
+      where: { id },
+      data: {
+        unitId: unitId || null,
+        lessonId: lessonId || null,
+        levelId: levelId || null,
+        order: parseInt(order) || 0,
+        isFree: isFree || false,
+        translations: {
+          create: translations || [],
+        },
+        characters: {
+          create:
+            characters?.map((char: any) => ({
+              order: char.order || 0,
+              avatarUrl: char.avatarUrl || null,
+              translations: {
+                create: char.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        characters: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    // Create a map of temp character IDs to real character IDs
+    const characterIdMap = new Map<string, string>();
+    if (characters && dialog.characters) {
+      characters.forEach((char: any, index: number) => {
+        const realChar = dialog.characters[index];
+        if (realChar) {
+          // Map by temp ID if provided
+          if (char.id) {
+            characterIdMap.set(char.id, realChar.id);
+          }
+          // Also map by index as fallback
+          characterIdMap.set(`temp-${index}`, realChar.id);
+          // Map by order as well
+          characterIdMap.set(`temp-${char.order || index}`, realChar.id);
+        }
+      });
+    }
+
+    // Now create messages with correct character IDs
+    if (messages && messages.length > 0) {
+      await prisma.dialogMessage.createMany({
+        data: messages.map((msg: any) => {
+          // Find the correct character ID
+          let characterId = msg.characterId;
+          if (characterIdMap.has(msg.characterId)) {
+            characterId = characterIdMap.get(msg.characterId)!;
+          } else {
+            // Fallback: use first character if ID not found
+            characterId = dialog.characters[0]?.id || '';
+          }
+
+          return {
+            dialogId: dialog.id,
+            characterId: characterId,
+            order: msg.order || 0,
+            audioUrl: msg.audioUrl || null,
+          };
+        }),
+      });
+
+      // Create message translations
+      for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+        let characterId = msg.characterId;
+        if (characterIdMap.has(msg.characterId)) {
+          characterId = characterIdMap.get(msg.characterId)!;
+        } else {
+          characterId = dialog.characters[0]?.id || '';
+        }
+
+        const createdMessage = await prisma.dialogMessage.findFirst({
+          where: {
+            dialogId: dialog.id,
+            characterId: characterId,
+            order: msg.order || i,
+          },
+        });
+
+        if (createdMessage && msg.translations) {
+          await prisma.dialogMessageTranslation.createMany({
+            data: msg.translations.map((trans: any) => ({
+              messageId: createdMessage.id,
+              languageId: trans.languageId,
+              text: trans.text,
+            })),
+          });
+        }
+      }
+    }
+
+    // Fetch the complete dialog with all relations
+    const completeDialog = await prisma.dialog.findUnique({
+      where: { id: dialog.id },
+      include: {
+        unit: {
+          include: {
+            translations: true,
+          },
+        },
+        lesson: {
+          include: {
+            translations: true,
+          },
+        },
+        level: true,
+        translations: true,
+        characters: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        messages: {
+          include: {
+            character: {
+              include: {
+                translations: true,
+              },
+            },
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        questions: {
+          include: {
+            prompts: true,
+            options: {
+              include: {
+                translations: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    res.json(dialog);
+  } catch (error) {
+    console.error('Update dialog error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteDialog = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.dialog.delete({
+      where: { id },
+    });
+    res.json({ message: 'Dialog deleted successfully' });
+  } catch (error) {
+    console.error('Delete dialog error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Dialog Questions CRUD
+export const createDialogQuestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { dialogId } = req.params;
+    const {
+      type,
+      order,
+      correctAnswer,
+      mediaUrl,
+      prompts,
+      options,
+    } = req.body;
+
+    const question = await prisma.dialogQuestion.create({
+      data: {
+        dialogId,
+        type,
+        order: order || 0,
+        correctAnswer,
+        mediaUrl,
+        prompts: {
+          create: prompts || [],
+        },
+        options: {
+          create:
+            options?.map((opt: any) => ({
+              order: opt.order || 0,
+              translations: {
+                create: opt.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        prompts: true,
+        options: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    res.status(201).json(question);
+  } catch (error) {
+    console.error('Create dialog question error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateDialogQuestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      dialogId,
+      type,
+      order,
+      correctAnswer,
+      mediaUrl,
+      prompts,
+      options,
+    } = req.body;
+
+    // Delete existing prompts and options
+    await prisma.dialogQuestionPrompt.deleteMany({
+      where: { questionId: id },
+    });
+    await prisma.dialogQuestionOption.deleteMany({
+      where: { questionId: id },
+    });
+
+    const question = await prisma.dialogQuestion.update({
+      where: { id },
+      data: {
+        type,
+        order: order || 0,
+        correctAnswer,
+        mediaUrl,
+        prompts: {
+          create: prompts || [],
+        },
+        options: {
+          create:
+            options?.map((opt: any) => ({
+              order: opt.order || 0,
+              translations: {
+                create: opt.translations || [],
+              },
+            })) || [],
+        },
+      },
+      include: {
+        prompts: true,
+        options: {
+          include: {
+            translations: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    res.json(question);
+  } catch (error) {
+    console.error('Update dialog question error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteDialogQuestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.dialogQuestion.delete({
+      where: { id },
+    });
+    res.json({ message: 'Dialog question deleted successfully' });
+  } catch (error) {
+    console.error('Delete dialog question error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

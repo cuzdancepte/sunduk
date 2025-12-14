@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/useTheme';
 import UnitDetailScreen from '../screens/UnitDetailScreen';
 import LessonScreen from '../screens/LessonScreen';
+import ExamScreen from '../screens/ExamScreen';
+import DialogDetailScreen from '../screens/DialogDetailScreen';
 import LevelDetailScreen from '../screens/LevelDetailScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import LeaderboardScreen from '../screens/leaderboard/LeaderboardScreen';
@@ -26,6 +28,8 @@ export type AppStackParamList = {
   LevelDetail: { levelId: string };
   UnitDetail: { unitId: string };
   Lesson: { lessonId: string };
+  Exam: { examId: string };
+  DialogDetail: { dialogId: string };
   Settings: undefined;
   Leaderboard: undefined;
   PeopleProfileDetails: { userId: string };
@@ -78,6 +82,16 @@ const AppStack = () => {
         name="Lesson"
         component={LessonScreen}
         options={{ title: 'Ders' }}
+      />
+      <Stack.Screen
+        name="Exam"
+        component={ExamScreen}
+        options={{ title: 'Sınav' }}
+      />
+      <Stack.Screen
+        name="DialogDetail"
+        component={DialogDetailScreen}
+        options={{ title: 'Dialog' }}
       />
       <Stack.Screen
         name="Settings"

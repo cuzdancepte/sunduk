@@ -22,6 +22,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import BookIcon from '@mui/icons-material/Book';
 import QuizIcon from '@mui/icons-material/Quiz';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
 import PeopleIcon from '@mui/icons-material/People';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -38,6 +39,7 @@ const menuItems = [
   { text: 'Dersler', icon: <BookIcon />, path: '/lessons' },
   { text: 'Alıştırmalar', icon: <QuizIcon />, path: '/exercises' },
   { text: 'Sınavlar', icon: <AssignmentIcon />, path: '/exams' },
+  { text: 'Dialoglar', icon: <ChatBubbleIcon />, path: '/dialogs' },
   { text: 'Kullanıcılar', icon: <PeopleIcon />, path: '/users' },
   { text: 'Abonelikler', icon: <CreditCardIcon />, path: '/subscriptions' },
 ];
