@@ -131,22 +131,22 @@ const AppStack = () => {
       <Stack.Screen
         name="PersonalInfo"
         component={PersonalInfoScreen}
-        options={{ title: 'Kişisel Bilgiler' }}
+        options={{ title: 'Kişisel Bilgiler', headerShown: false }}
       />
       <Stack.Screen
         name="NotificationSettings"
         component={NotificationSettingsScreen}
-        options={{ title: 'Bildirimler' }}
+        options={{ title: 'Bildirimler', headerShown: false }}
       />
       <Stack.Screen
         name="AccessibilitySettings"
         component={AccessibilitySettingsScreen}
-        options={{ title: 'Erişilebilirlik' }}
+        options={{ title: 'Erişilebilirlik', headerShown: false }}
       />
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettingsScreen}
-        options={{ title: 'Güvenlik' }}
+        options={{ title: 'Güvenlik', headerShown: false }}
       />
       <Stack.Screen
         name="LanguageSettings"
@@ -156,22 +156,22 @@ const AppStack = () => {
       <Stack.Screen
         name="HelpCenterFAQ"
         component={HelpCenterFAQScreen}
-        options={{ title: 'Yardım Merkezi' }}
+        options={{ title: 'Yardım Merkezi', headerShown: false }}
       />
       <Stack.Screen
         name="HelpCenterSearch"
         component={HelpCenterSearchScreen}
-        options={{ title: 'Arama' }}
+        options={{ title: 'Arama', headerShown: false }}
       />
       <Stack.Screen
         name="HelpCenterContact"
         component={HelpCenterContactScreen}
-        options={{ title: 'İletişim' }}
+        options={{ title: 'İletişim', headerShown: false }}
       />
       <Stack.Screen
         name="About"
         component={AboutScreen}
-        options={{ title: 'Hakkında' }}
+        options={{ title: 'Hakkında', headerShown: false }}
       />
       <Stack.Screen
         name="LogoutModal"

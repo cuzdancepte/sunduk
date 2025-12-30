@@ -11,7 +11,7 @@ import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/nativ
 import { RouteProp } from '@react-navigation/native';
 import { AppStackParamList } from '../navigation/AppStack';
 import { contentAPI } from '../services/api';
-import { Unit, Lesson } from '../types';
+import { Unit, Lesson, Exam } from '../types';
 import { useTheme } from '../theme/useTheme';
 import { Card, Badge, LoadingSpinner, EmptyState } from '../components/ui';
 
@@ -43,21 +43,121 @@ const UnitDetailScreen = () => {
     }, [unitId])
   );
 
-  const renderLesson = ({ item, index }: { item: Lesson; index: number }) => {
-    const translation = item.translations?.[0];
-    const title = translation?.title || `Ders ${item.order}`;
-    const isLocked = !item.isFree;
-    const isCompleted = item.completion?.completed || false;
+  const renderExam = (exam: Exam, index: number, allItems: Array<{ type: 'lesson' | 'exam'; sortOrder: number; data: Lesson | Exam }>) => {
+    const translation = exam.translations?.[0];
+    const title = translation?.title || `Sınav ${exam.order}`;
+    const isCompleted = exam.completion?.completed || false;
     
-    // İlk ders her zaman aktif
-    const isFirstLesson = index === 0;
+    // Önceki item'ları kontrol et
+    const previousItems = allItems.slice(0, index);
+    const isFirstItem = index === 0;
+    const previousItemsCompleted = previousItems.every(item => {
+      if (item.type === 'lesson') {
+        const lesson = item.data as Lesson;
+        return lesson.completion?.completed || false;
+      } else {
+        const prevExam = item.data as Exam;
+        return prevExam.completion?.completed || false;
+      }
+    });
     
-    // Önceki ders tamamlanmış mı kontrol et
-    const previousLesson = unit.lessons?.[index - 1];
-    const isPreviousLessonCompleted = previousLesson?.completion?.completed || false;
+    const isActive = isFirstItem || previousItemsCompleted;
+    const isDisabled = !isActive;
+
+    return (
+      <TouchableOpacity
+        key={`exam-${exam.id}`}
+        onPress={() => {
+          if (isDisabled) {
+            Alert.alert('Kilitli', 'Önceki dersleri tamamlamalısınız');
+          } else {
+            navigation.navigate('App', {
+              screen: 'Exam',
+              params: { examId: exam.id },
+            });
+          }
+        }}
+        disabled={isDisabled}
+        style={{ marginBottom: theme.spacing.md }}
+      >
+        <Card
+          variant="elevated"
+          padding="medium"
+          style={[
+            !isActive && {
+              opacity: 0.5,
+              backgroundColor: theme.colors.grey[100],
+            },
+            isCompleted && {
+              borderWidth: 2,
+              borderColor: theme.colors.success.main,
+              backgroundColor: `${theme.colors.success.main}10`,
+            },
+            !isCompleted && {
+              borderWidth: 2,
+              borderColor: '#FFA828',
+              backgroundColor: '#FFA82815',
+            },
+          ]}
+        >
+          <View style={styles.lessonHeader}>
+            <Text
+              style={[
+                styles.lessonTitle,
+                {
+                  color: isActive ? theme.colors.text.primary : theme.colors.text.disabled,
+                  fontFamily: theme.typography.fontFamily.semiBold,
+                },
+              ]}
+            >
+              🏆 {title}
+            </Text>
+            {isCompleted && (
+              <View style={[styles.completedBadge, { backgroundColor: theme.colors.success.main }]}>
+                <Text style={[styles.completedIcon, { color: theme.colors.text.white }]}>✓</Text>
+              </View>
+            )}
+          </View>
+          {!isActive && (
+            <Text style={[styles.lockedText, { color: theme.colors.text.disabled, fontFamily: theme.typography.fontFamily.regular }]}>
+              🔒 Kilitli
+            </Text>
+          )}
+          {isCompleted && exam.completion && (
+            <Text style={[styles.completedText, { color: theme.colors.success.dark, fontFamily: theme.typography.fontFamily.medium }]}>
+              {exam.completion.correctCount}/{exam.completion.totalCount} doğru ({exam.completion.score.toFixed(0)}%)
+            </Text>
+          )}
+          {!isCompleted && exam.passingScore && (
+            <Text style={[styles.completedText, { color: '#FFA828', fontFamily: theme.typography.fontFamily.medium }]}>
+              Geçme notu: {exam.passingScore}%
+            </Text>
+          )}
+        </Card>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderLesson = (lesson: Lesson, index: number, allItems: Array<{ type: 'lesson' | 'exam'; sortOrder: number; data: Lesson | Exam }>) => {
+    const translation = lesson.translations?.[0];
+    const title = translation?.title || `Ders ${lesson.order}`;
+    const isLocked = !lesson.isFree;
+    const isCompleted = lesson.completion?.completed || false;
     
-    // Aktif olması için: ilk ders olmalı VEYA önceki ders tamamlanmış olmalı
-    const isActive = isFirstLesson || isPreviousLessonCompleted;
+    // Önceki item'ları kontrol et
+    const previousItems = allItems.slice(0, index);
+    const isFirstItem = index === 0;
+    const previousItemsCompleted = previousItems.every(item => {
+      if (item.type === 'lesson') {
+        const prevLesson = item.data as Lesson;
+        return prevLesson.completion?.completed || false;
+      }
+      // Exam'ler için şimdilik true (ileride exam completion eklenebilir)
+      return true;
+    });
+    
+    // Aktif olması için: ilk item olmalı VEYA önceki item'lar tamamlanmış olmalı
+    const isActive = isFirstItem || previousItemsCompleted;
     
     // Devre dışı bırakılması için: aktif değilse VEYA kilitliyse
     const isDisabled = !isActive || isLocked;
@@ -67,14 +167,14 @@ const UnitDetailScreen = () => {
         onPress={() => {
           if (isDisabled) {
             if (!isActive) {
-              Alert.alert('Kilitli', 'Önceki dersi tamamlamalısınız');
+              Alert.alert('Kilitli', 'Önceki içerikleri tamamlamalısınız');
             } else if (isLocked) {
               Alert.alert('Premium', 'Bu ders için abonelik gereklidir');
             }
           } else {
             navigation.navigate('App', {
               screen: 'Lesson',
-              params: { lessonId: item.id },
+              params: { lessonId: lesson.id },
             });
           }
         }}
@@ -123,9 +223,9 @@ const UnitDetailScreen = () => {
           {isLocked && (
             <Badge label="Premium" variant="warning" size="small" style={{ marginTop: 8 }} />
           )}
-          {isCompleted && item.completion && (
+          {isCompleted && lesson.completion && (
             <Text style={[styles.completedText, { color: theme.colors.success.dark, fontFamily: theme.typography.fontFamily.medium }]}>
-              {item.completion.correctCount}/{item.completion.totalCount} doğru ({item.completion.score.toFixed(0)}%)
+              {lesson.completion.correctCount}/{lesson.completion.totalCount} doğru ({lesson.completion.score.toFixed(0)}%)
             </Text>
           )}
         </Card>
@@ -150,6 +250,47 @@ const UnitDetailScreen = () => {
   const unitTitle = translation?.title || unit.slug;
   const unitDescription = translation?.description;
 
+  // Dersler ve sınavları lessonId'ye göre birleştir
+  const lessons = (unit.lessons || []).slice().sort((a, b) => a.order - b.order);
+  const exams = (unit.exams || []).slice().sort((a, b) => a.order - b.order);
+  const maxLessonOrder = lessons.length > 0 ? Math.max(...lessons.map(l => l.order)) : 0;
+  
+  type UnitItem = { type: 'lesson' | 'exam'; sortOrder: number; data: Lesson | Exam };
+  const unitItems: UnitItem[] = [
+    ...lessons.map(lesson => ({ 
+      type: 'lesson' as const, 
+      sortOrder: lesson.order * 10000,
+      data: lesson 
+    })),
+    ...exams.map(exam => {
+      if (exam.lessonId) {
+        // Exam bir derse bağlıysa, o dersin order'ından sonra
+        const lesson = lessons.find(l => l.id === exam.lessonId);
+        const lessonOrder = lesson ? lesson.order : maxLessonOrder;
+        return {
+          type: 'exam' as const,
+          sortOrder: lessonOrder * 10000 + 5000 + exam.order,
+          data: exam
+        };
+      } else {
+        // Exam unit sonunda
+        return {
+          type: 'exam' as const,
+          sortOrder: maxLessonOrder * 10000 + 100000 + exam.order,
+          data: exam
+        };
+      }
+    }),
+  ].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const renderItem = ({ item, index }: { item: UnitItem; index: number }) => {
+    if (item.type === 'lesson') {
+      return renderLesson(item.data as Lesson, index, unitItems);
+    } else {
+      return renderExam(item.data as Exam, index, unitItems);
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
       <View style={[styles.header, { backgroundColor: theme.colors.background.default, borderBottomColor: theme.colors.border.light }]}>
@@ -162,17 +303,17 @@ const UnitDetailScreen = () => {
           </Text>
         )}
       </View>
-      {unit.lessons && unit.lessons.length > 0 ? (
+      {unitItems.length > 0 ? (
         <FlatList
-          data={unit.lessons}
-          renderItem={({ item, index }) => renderLesson({ item, index })}
-          keyExtractor={(item) => item.id}
+          data={unitItems}
+          renderItem={renderItem}
+          keyExtractor={(item) => `${item.type}-${item.data.id}`}
           contentContainerStyle={[styles.list, { padding: theme.spacing.lg }]}
         />
       ) : (
         <EmptyState
-          title="Bu ünitede henüz ders yok"
-          description="Yakında dersler eklenecek"
+          title="Bu ünitede henüz içerik yok"
+          description="Yakında dersler ve sınavlar eklenecek"
         />
       )}
     </View>

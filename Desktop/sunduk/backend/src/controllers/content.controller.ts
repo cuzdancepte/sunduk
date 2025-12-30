@@ -601,10 +601,10 @@ export const getDialog = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: 'User authentication required' });
     }
 
-    // Get user's native language
+    // Get user's native language and learning language
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { nativeLanguageId: true },
+      select: { nativeLanguageId: true, learningLanguageId: true },
     });
 
     if (!user) {
@@ -659,11 +659,7 @@ export const getDialog = async (req: AuthRequest, res: Response) => {
                 },
               },
             },
-            translations: {
-              where: {
-                languageId: user.nativeLanguageId,
-              },
-            },
+            translations: true, // Tüm çevirileri al (hem öğrenilen dil hem native language)
           },
           orderBy: { order: 'asc' },
         },

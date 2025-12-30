@@ -20,7 +20,8 @@
             "./assets/fonts/Nunito-Bold.ttf"
           ]
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "assetBundlePatterns": [
       "**/*"
@@ -37,4 +38,3 @@
     }
   }
 }
-

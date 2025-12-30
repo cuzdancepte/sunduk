@@ -1,12 +1,39 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Localization from 'expo-localization';
 
 import tr from './locales/tr.json';
 import en from './locales/en.json';
 import ru from './locales/ru.json';
 
 const LANGUAGE_STORAGE_KEY = 'app_language';
+
+// Telefon dilini algıla ve desteklenen dile çevir
+const getDeviceLanguage = (): string => {
+  try {
+    // Telefonun dil kodunu al (örn: 'tr-TR', 'en-US', 'ru-RU')
+    const deviceLocale = Localization.locale || Localization.getLocales()[0]?.languageCode || 'en';
+    
+    // Sadece dil kodunu al (örn: 'tr', 'en', 'ru')
+    const languageCode = deviceLocale.split('-')[0].toLowerCase();
+    
+    // Desteklenen dilleri kontrol et
+    if (languageCode === 'tr') {
+      return 'tr';
+    } else if (languageCode === 'ru') {
+      return 'ru';
+    } else if (languageCode === 'en') {
+      return 'en';
+    }
+    
+    // Diğer diller için varsayılan: İngilizce
+    return 'en';
+  } catch (error) {
+    console.error('Error getting device language:', error);
+    return 'en';
+  }
+};
 
 // AsyncStorage'dan dil tercihini yükle
 const loadLanguage = async (): Promise<string> => {
@@ -23,11 +50,12 @@ const loadLanguage = async (): Promise<string> => {
       return savedLanguage;
     }
     
-    // Varsayılan dil: İngilizce
-    return 'en';
+    // Eğer kullanıcı daha önce bir dil seçmemişse, telefon dilini kullan
+    return getDeviceLanguage();
   } catch (error) {
     console.error('Error loading language:', error);
-    return 'en';
+    // Hata durumunda telefon dilini kullan
+    return getDeviceLanguage();
   }
 };
 

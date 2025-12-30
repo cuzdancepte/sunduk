@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -25,17 +25,18 @@ const DialogDetailScreen = () => {
   const { dialogId } = route.params;
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [showQuestions, setShowQuestions] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<{
     [questionId: string]: string;
   }>({});
+  const [translatedMessages, setTranslatedMessages] = useState<Set<string>>(new Set());
+  const messagesScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     loadDialog();
   }, [dialogId]);
 
-  const loadDialog = async () => {
+  const loadDialog = useCallback(async () => {
     try {
       setLoading(true);
       const data = await contentAPI.getDialog(dialogId);
@@ -46,22 +47,55 @@ const DialogDetailScreen = () => {
     } finally {
       setLoading(false);
     }
+  }, [dialogId, navigation]);
+
+  useEffect(() => {
+    loadDialog();
+  }, [loadDialog]);
+
+  // Scroll to bottom when messages load
+  useEffect(() => {
+    if (dialog?.messages && messagesScrollRef.current && !showQuestions) {
+      setTimeout(() => {
+        messagesScrollRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [dialog?.messages, showQuestions]);
+
+  // Karakterleri sıraya göre sağlı sollu dağıt
+  // İlk görünen karakter sol, ikinci görünen karakter sağ, üçüncü tekrar sol, vs.
+  const getCharacterSide = useCallback((characterId: string | undefined) => {
+    if (!characterId || !dialog?.messages) return 'left';
+    
+    // Tüm benzersiz karakterleri sırayla topla
+    const uniqueCharacters: string[] = [];
+    dialog.messages.forEach((msg) => {
+      const charId = msg.character?.id;
+      if (charId && !uniqueCharacters.includes(charId)) {
+        uniqueCharacters.push(charId);
+      }
+    });
+    
+    // Karakterin sırasını bul
+    const characterIndex = uniqueCharacters.indexOf(characterId);
+    // Çift index = sağ, tek index = sol
+    return characterIndex % 2 === 0 ? 'left' : 'right';
+  }, [dialog?.messages]);
+
+  const handleShowQuestions = () => {
+    setShowQuestions(true);
   };
 
-  const handleNextMessage = () => {
-    if (dialog?.messages && currentMessageIndex < dialog.messages.length - 1) {
-      setCurrentMessageIndex(currentMessageIndex + 1);
-    } else {
-      // Dialog bitti, soruları göster
-      setShowQuestions(true);
-    }
-  };
-
-  const handlePreviousMessage = () => {
-    if (currentMessageIndex > 0) {
-      setCurrentMessageIndex(currentMessageIndex - 1);
-      setShowQuestions(false);
-    }
+  const toggleTranslation = (messageId: string) => {
+    setTranslatedMessages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
   };
 
   const handleOptionSelect = (questionId: string, optionId: string) => {
@@ -109,15 +143,150 @@ const DialogDetailScreen = () => {
   }
 
   const translation = dialog.translations?.[0];
-  const currentMessage = dialog.messages?.[currentMessageIndex];
-  const character = currentMessage?.character;
-  const characterName = character?.translations?.[0]?.name || 'Karakter';
+
+  // Format avatar URL helper function
+  const formatImageUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined;
+    let formattedUrl = url;
+    if (formattedUrl.includes('localhost:3001')) {
+      formattedUrl = formattedUrl.replace('localhost:3001', '192.168.1.5:3001');
+    } else if (formattedUrl.includes('127.0.0.1:3001')) {
+      formattedUrl = formattedUrl.replace('127.0.0.1:3001', '192.168.1.5:3001');
+    } else if (!formattedUrl.startsWith('http')) {
+      if (formattedUrl.startsWith('/uploads')) {
+        formattedUrl = `http://192.168.1.5:3001${formattedUrl}`;
+      } else if (formattedUrl.startsWith('uploads')) {
+        formattedUrl = `http://192.168.1.5:3001/${formattedUrl}`;
+      }
+    }
+    return formattedUrl;
+  };
+
+  // Render all messages in WhatsApp style
+  const renderMessage = (message: DialogMessage, index: number) => {
+    const character = message.character;
+    const characterName = character?.translations?.[0]?.name || 'Karakter';
+    
+    // Mesajın tüm çevirileri artık backend'den geliyor
+    // İlk çeviri öğrenilen dilde, ikinci çeviri native language'de olabilir
+    // Ya da tam tersi - hangisi varsa onu göster
+    const allTranslations = message.translations || [];
+    const messageText = allTranslations[0]?.text || '';
+    // İkinci çeviri varsa onu çeviri olarak göster
+    const translationText = allTranslations.length > 1 ? allTranslations[1]?.text : '';
+    
+    const avatarUrl = formatImageUrl(character?.avatarUrl);
+    
+    // Karakterin hangi tarafta olacağını belirle
+    const characterSide = getCharacterSide(character?.id);
+    const isUserMessage = characterSide === 'right';
+    const showTranslation = translatedMessages.has(message.id);
+
+    // Aynı karakterin ardışık mesajlarını grupla (avatar gösterimi için)
+    const prevMessage = index > 0 ? dialog?.messages?.[index - 1] : null;
+    const showAvatar = !prevMessage || prevMessage.character?.id !== character?.id;
+
+    return (
+      <View
+        key={message.id}
+        style={[
+          styles.messageRow,
+          isUserMessage ? styles.userMessageRow : styles.characterMessageRow,
+        ]}
+      >
+        {characterSide === 'left' && (
+          <View style={[styles.avatarContainer, { marginLeft: 0, marginRight: 8 }]}>
+            {showAvatar ? (
+              avatarUrl && avatarUrl.trim() !== '' ? (
+                <Image
+                  source={{ uri: avatarUrl }}
+                  style={styles.messageAvatar}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={[styles.messageAvatar, styles.avatarPlaceholder, { backgroundColor: theme.colors.primary.main }]}>
+                  <Text style={[styles.avatarPlaceholderText, { color: theme.colors.primary.contrast }]}>
+                    {characterName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )
+            ) : (
+              <View style={styles.messageAvatar} />
+            )}
+          </View>
+        )}
+        <View
+          style={[
+            styles.messageBubble,
+            isUserMessage ? styles.userBubble : styles.characterBubble,
+          ]}
+        >
+          {characterSide === 'left' && showAvatar && (
+            <Text style={[styles.messageSender, { color: theme.colors.primary.main }]}>
+              {characterName}
+            </Text>
+          )}
+          {characterSide === 'right' && showAvatar && (
+            <Text style={[styles.messageSender, { color: '#25D366' }]}>
+              {characterName}
+            </Text>
+          )}
+          <Text style={styles.messageText}>{messageText}</Text>
+          {showTranslation && translationText && (
+            <View style={styles.translationContainer}>
+              <Text style={styles.translationText}>{translationText}</Text>
+            </View>
+          )}
+          <View style={styles.messageFooter}>
+            <Text style={styles.messageTime}>
+              {new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+            {message.audioUrl && (
+              <Text style={styles.audioIcon}>🔊</Text>
+            )}
+          </View>
+        </View>
+        {/* Çeviri butonu - mesaj balonunun yanında */}
+        {translationText && (
+          <TouchableOpacity
+            onPress={() => toggleTranslation(message.id)}
+            style={[
+              styles.translateButton,
+              characterSide === 'left' ? styles.translateButtonLeft : styles.translateButtonRight,
+            ]}
+          >
+            <Text style={styles.translateButtonText}>
+              {showTranslation ? '🔼' : '🔽'}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {characterSide === 'right' && (
+          <View style={[styles.avatarContainer, { marginLeft: 8, marginRight: 0 }]}>
+            {showAvatar ? (
+              avatarUrl && avatarUrl.trim() !== '' ? (
+                <Image
+                  source={{ uri: avatarUrl }}
+                  style={styles.messageAvatar}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={[styles.messageAvatar, styles.avatarPlaceholder, { backgroundColor: '#25D366' }]}>
+                  <Text style={[styles.avatarPlaceholderText, { color: '#FFFFFF' }]}>
+                    {characterName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )
+            ) : (
+              <View style={styles.messageAvatar} />
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background.light }]}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
       {/* Dialog Header */}
       <View
         style={[
@@ -167,114 +336,37 @@ const DialogDetailScreen = () => {
         )}
       </View>
 
-      {/* Dialog Messages */}
-      {!showQuestions && currentMessage && (
-        <View style={[styles.content, { padding: theme.spacing.lg }]}>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={handleNextMessage}
-            style={{ marginBottom: theme.spacing.md }}
+      {/* Dialog Messages - WhatsApp Style */}
+      {!showQuestions && dialog?.messages && dialog.messages.length > 0 && (
+        <>
+          <ScrollView
+            ref={messagesScrollRef}
+            style={styles.messagesContainer}
+            contentContainerStyle={styles.messagesContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Card
-              variant="elevated"
-              padding="large"
-              style={{ minHeight: 150 }}
-            >
-              <View style={styles.messageHeader}>
-                {character?.avatarUrl && (
-                  <Image
-                    source={{ uri: character.avatarUrl }}
-                    style={styles.avatar}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.characterName,
-                    {
-                      color: theme.colors.primary.main,
-                      fontFamily: theme.typography.fontFamily.bold,
-                    },
-                  ]}
-                >
-                  {characterName}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.messageText,
-                  {
-                    color: theme.colors.text.primary,
-                    fontFamily: theme.typography.fontFamily.semiBold,
-                  },
-                ]}
-              >
-                {currentMessage.translations?.[0]?.text || ''}
-              </Text>
-              {currentMessage.audioUrl && (
-                <Text
-                  style={[
-                    styles.audioNote,
-                    {
-                      color: theme.colors.text.secondary,
-                      fontFamily: theme.typography.fontFamily.regular,
-                    },
-                  ]}
-                >
-                  🔊 Ses dosyası mevcut
-                </Text>
-              )}
-              <View style={styles.tapHint}>
-                <Text
-                  style={[
-                    styles.tapHintText,
-                    {
-                      color: theme.colors.text.secondary,
-                      fontFamily: theme.typography.fontFamily.regular,
-                    },
-                  ]}
-                >
-                  {currentMessageIndex === (dialog.messages?.length || 0) - 1 
-                    ? 'Sorulara geçmek için dokunun →' 
-                    : 'Sonraki mesaj için dokunun →'}
-                </Text>
-              </View>
-            </Card>
-          </TouchableOpacity>
-
-          <View style={styles.navigationContainer}>
-            <View style={styles.navigationButtons}>
-              <Button
-                label="◀ Önceki"
-                onPress={handlePreviousMessage}
-                variant="outlined"
-                disabled={currentMessageIndex === 0}
-                style={{ flex: 1, marginRight: theme.spacing.sm }}
-              />
-              <Button
-                label={currentMessageIndex === (dialog.messages?.length || 0) - 1 ? 'Sorulara Geç ▶' : 'Sonraki ▶'}
-                onPress={handleNextMessage}
-                variant="contained"
-                style={{ flex: 1 }}
-              />
-            </View>
-            <Text
-              style={[
-                styles.progressText,
-                {
-                  color: theme.colors.text.secondary,
-                  fontFamily: theme.typography.fontFamily.regular,
-                },
-              ]}
-            >
-              {currentMessageIndex + 1} / {dialog.messages?.length || 0}
-            </Text>
+            {dialog.messages.map((message, index) => renderMessage(message, index))}
+          </ScrollView>
+          
+          {/* Questions Button */}
+          <View style={[styles.questionsButtonContainer, { backgroundColor: theme.colors.background.default, borderTopColor: theme.colors.border.light }]}>
+            <Button
+              label="Sorulara Geç ▶"
+              onPress={handleShowQuestions}
+              variant="contained"
+              style={styles.questionsButton}
+            />
           </View>
-        </View>
+        </>
       )}
 
       {/* Dialog Questions */}
       {showQuestions && dialog.questions && dialog.questions.length > 0 && (
-        <View style={[styles.content, { padding: theme.spacing.lg }]}>
+        <ScrollView
+          style={styles.questionsContainer}
+          contentContainerStyle={[styles.content, { padding: theme.spacing.lg }]}
+          showsVerticalScrollIndicator={false}
+        >
           <Text
             style={[
               styles.sectionTitle,
@@ -289,6 +381,22 @@ const DialogDetailScreen = () => {
           {dialog.questions.map((question: DialogQuestion, index: number) => {
             const prompt = question.prompts?.[0];
             const questionText = prompt?.questionText || 'Soru';
+
+            // Format media URL - convert localhost to mobile-accessible IP
+            let mediaUrl = question.mediaUrl;
+            if (mediaUrl) {
+              if (mediaUrl.includes('localhost:3001')) {
+                mediaUrl = mediaUrl.replace('localhost:3001', '192.168.1.5:3001');
+              } else if (mediaUrl.includes('127.0.0.1:3001')) {
+                mediaUrl = mediaUrl.replace('127.0.0.1:3001', '192.168.1.5:3001');
+              } else if (!mediaUrl.startsWith('http')) {
+                if (mediaUrl.startsWith('/uploads')) {
+                  mediaUrl = `http://192.168.1.5:3001${mediaUrl}`;
+                } else if (mediaUrl.startsWith('uploads')) {
+                  mediaUrl = `http://192.168.1.5:3001/${mediaUrl}`;
+                }
+              }
+            }
 
             return (
               <Card
@@ -308,9 +416,9 @@ const DialogDetailScreen = () => {
                 >
                   {questionText}
                 </Text>
-                {question.mediaUrl && (
+                {mediaUrl && (
                   <Image
-                    source={{ uri: question.mediaUrl }}
+                    source={{ uri: mediaUrl }}
                     style={styles.questionImage}
                     resizeMode="contain"
                   />
@@ -362,7 +470,7 @@ const DialogDetailScreen = () => {
             variant="contained"
             style={{ marginTop: theme.spacing.md }}
           />
-        </View>
+        </ScrollView>
       )}
 
       {showQuestions && (!dialog.questions || dialog.questions.length === 0) && (
@@ -373,7 +481,7 @@ const DialogDetailScreen = () => {
           />
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 };
 
@@ -404,54 +512,127 @@ const styles = StyleSheet.create({
   content: {
     // Padding handled inline with theme
   },
-  messageHeader: {
+  // WhatsApp style messages
+  messagesContainer: {
+    flex: 1,
+    backgroundColor: '#ECE5DD', // WhatsApp benzeri arka plan
+  },
+  messagesContent: {
+    padding: 12,
+    paddingBottom: 20,
+  },
+  messageRow: {
     flexDirection: 'row',
+    marginBottom: 4,
+    alignItems: 'flex-end',
+  },
+  characterMessageRow: {
+    justifyContent: 'flex-start',
+  },
+  userMessageRow: {
+    justifyContent: 'flex-end',
+  },
+  avatarContainer: {
+    width: 36,
+  },
+  messageAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  avatarPlaceholder: {
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 12,
+  avatarPlaceholderText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-  characterName: {
-    fontSize: 18,
+  messageBubble: {
+    maxWidth: '75%',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  characterBubble: {
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 4,
+  },
+  userBubble: {
+    backgroundColor: '#DCF8C6', // WhatsApp yeşil tonu
+    borderBottomRightRadius: 4,
+  },
+  messageSender: {
+    fontSize: 12,
     fontWeight: '600',
+    marginBottom: 4,
   },
   messageText: {
-    fontSize: 20,
-    lineHeight: 30,
-    marginBottom: 8,
-    fontWeight: '500',
+    fontSize: 15,
+    lineHeight: 20,
+    color: '#000000',
   },
-  audioNote: {
+  messageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  messageTime: {
+    fontSize: 11,
+    color: '#999999',
+    marginRight: 4,
+  },
+  audioIcon: {
     fontSize: 12,
+  },
+  translationContainer: {
     marginTop: 8,
-  },
-  tapHint: {
-    marginTop: 16,
-    paddingTop: 12,
+    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
   },
-  tapHintText: {
-    fontSize: 12,
-    textAlign: 'right',
+  translationText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#666666',
     fontStyle: 'italic',
   },
-  navigationContainer: {
-    marginTop: 8,
+  translateButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
+    marginRight: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  navigationButtons: {
-    flexDirection: 'row',
-    marginBottom: 12,
+  translateButtonLeft: {
+    marginLeft: 4,
+    marginRight: 0,
   },
-  progressText: {
-    textAlign: 'center',
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: '600',
+  translateButtonRight: {
+    marginLeft: 0,
+    marginRight: 4,
+  },
+  translateButtonText: {
+    fontSize: 14,
+  },
+  questionsButtonContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+  },
+  questionsButton: {
+    width: '100%',
+  },
+  questionsContainer: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 22,

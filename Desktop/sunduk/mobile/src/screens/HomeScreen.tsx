@@ -25,7 +25,6 @@ import TopBar from '../components/TopBar';
 import LessonCard from '../components/LessonCard';
 import LevelStep from '../components/LevelStep';
 import Mascot from '../components/Mascot';
-import Trophy from '../components/Trophy';
 import { createPathItems, PathItem } from '../utils/learningPathUtils';
 
 const INITIAL_SCROLL_DELAY = 200;
@@ -50,6 +49,27 @@ const HomeScreen = () => {
       setError(null);
 
       const levelsData = await contentAPI.getLevels();
+      
+      // 🔍 DEBUG: Backend'den gelen verileri kontrol et
+      console.log('🔍 ========== LEVELS DATA ==========');
+      levelsData.forEach((level, levelIndex) => {
+        console.log(`\n📚 Level ${levelIndex + 1}:`, level.title || level.id);
+        level.units?.forEach((unit, unitIndex) => {
+          console.log(`  📦 Unit ${unitIndex + 1}:`, unit.translations?.[0]?.title || unit.id);
+          unit.lessons?.forEach((lesson, lessonIndex) => {
+            const completion = lesson.completion;
+            const isCompleted = completion?.completed || false;
+            console.log(
+              `    📖 Lesson ${lessonIndex + 1} (Order: ${lesson.order}):`,
+              lesson.translations?.[0]?.title || lesson.id,
+              `| Completed: ${isCompleted}`,
+              completion ? `| Score: ${completion.score}%` : '| No completion data'
+            );
+          });
+        });
+      });
+      console.log('🔍 =================================\n');
+      
       setLevels(levelsData);
     } catch (err: any) {
       const message = err.response?.data?.error || 'Veriler yüklenemedi';
@@ -107,7 +127,7 @@ const HomeScreen = () => {
 
   const lines = useMemo(() => {
     const stepItems = pathItems.filter(
-      item => item.type === 'lesson_step' || item.type === 'exercise_step',
+      item => item.type === 'lesson_step' || item.type === 'exercise_step' || item.type === 'trophy',
     );
 
     if (stepItems.length < 2) {
@@ -152,6 +172,16 @@ const HomeScreen = () => {
           screen: 'Lesson',
           params: { lessonId: item.lessonId },
         });
+        return;
+      }
+
+      if (item.type === 'trophy' && item.unitId) {
+        // Exam için UnitDetail'e yönlendir, orada exam detayı gösterilecek
+        navigation.navigate('App', {
+          screen: 'UnitDetail',
+          params: { unitId: item.unitId },
+        });
+        return;
       }
     },
     [navigation],
@@ -175,13 +205,19 @@ const HomeScreen = () => {
                 },
               ]}
             >
-              <LessonCard
-                lessonNumber={metadata?.lessonNumber || 0}
-                title={metadata?.title || ''}
-                backgroundColor={metadata?.backgroundColor || '#6949FF'}
-                fullWidth
+              <TouchableOpacity
                 onPress={() => handlePathItemPress(item)}
-              />
+                disabled={!item.isUnlocked}
+                activeOpacity={item.isUnlocked ? 0.8 : 1}
+              >
+                <LessonCard
+                  lessonNumber={metadata?.lessonNumber || 0}
+                  title={metadata?.title || ''}
+                  backgroundColor={metadata?.backgroundColor || '#6949FF'}
+                  fullWidth
+                  onPress={() => handlePathItemPress(item)}
+                />
+              </TouchableOpacity>
             </View>
           );
 
@@ -194,7 +230,7 @@ const HomeScreen = () => {
                 styles.stepWrapper,
                 {
                   top: position.top,
-                  left: position.left - (position.size || 0) / 2,
+                  left: position.left - (position.size || 0) / 2 - 10, // -10 for glow padding
                 },
               ]}
               onPress={() => handlePathItemPress(item)}
@@ -202,9 +238,10 @@ const HomeScreen = () => {
               activeOpacity={item.isUnlocked ? 0.7 : 1}
             >
               <LevelStep
-                type={stepType || (item.isCompleted ? 'pass' : item.isUnlocked ? 'default' : 'lock')}
+                type={stepType}
                 icon={icon || 'star'}
                 size={position.size || 0}
+                isActive={item.isActive}
               />
             </TouchableOpacity>
           );
@@ -227,18 +264,27 @@ const HomeScreen = () => {
 
         case 'trophy':
           return (
-            <View
+            <TouchableOpacity
               key={item.id}
               style={[
-                styles.trophyWrapper,
+                styles.stepWrapper,
                 {
                   top: position.top,
-                  left: position.left - 64,
+                  left: position.left - (position.size || 0) / 2 - 10, // -10 for glow padding
                 },
               ]}
+              onPress={() => handlePathItemPress(item)}
+              disabled={!item.isUnlocked}
+              activeOpacity={item.isUnlocked ? 0.7 : 1}
             >
-              <Trophy number={item.trophyNumber || 0} active={item.isCompleted} size={128} />
-            </View>
+              <LevelStep
+                type={stepType}
+                icon="star"
+                size={position.size || 0}
+                number={item.trophyNumber}
+                isActive={item.isActive}
+              />
+            </TouchableOpacity>
           );
 
         default:
@@ -348,9 +394,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   mascotWrapper: {
-    position: 'absolute',
-  },
-  trophyWrapper: {
     position: 'absolute',
   },
 });
