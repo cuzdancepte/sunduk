@@ -287,98 +287,63 @@ const DialogDetailScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
-      {/* Dialog Header */}
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.background.default,
-            borderBottomColor: theme.colors.border.light,
-          },
-        ]}
-      >
-        <Text
-          style={[
-            styles.title,
-            {
-              color: theme.colors.text.primary,
-              fontFamily: theme.typography.fontFamily.bold,
-            },
-          ]}
-        >
-          {translation?.title || 'Dialog'}
-        </Text>
-        {translation?.description && (
-          <Text
-            style={[
-              styles.description,
-              {
-                color: theme.colors.text.primary,
-                fontFamily: theme.typography.fontFamily.regular,
-              },
-            ]}
-          >
-            {translation.description}
-          </Text>
-        )}
-        {translation?.scenario && (
-          <Text
-            style={[
-              styles.scenario,
-              {
-                color: theme.colors.text.secondary,
-                fontFamily: theme.typography.fontFamily.regular,
-              },
-            ]}
-          >
-            {translation.scenario}
-          </Text>
-        )}
-      </View>
-
       {/* Dialog Messages - WhatsApp Style */}
       {!showQuestions && dialog?.messages && dialog.messages.length > 0 && (
-        <>
+        <View style={{ flex: 1, position: 'relative' }}>
           <ScrollView
             ref={messagesScrollRef}
             style={styles.messagesContainer}
-            contentContainerStyle={styles.messagesContent}
+            contentContainerStyle={[styles.messagesContent, { paddingBottom: 100 }]}
             showsVerticalScrollIndicator={false}
           >
             {dialog.messages.map((message, index) => renderMessage(message, index))}
+            
+            {/* Dialog sonunda sorular için prompt */}
+            {dialog.questions && dialog.questions.length > 0 && (
+              <View style={styles.endOfDialogPrompt}>
+                <Text style={[styles.endOfDialogText, { color: theme.colors.text.secondary }]}>
+                  Dialog tamamlandı!
+                </Text>
+                <TouchableOpacity
+                  onPress={handleShowQuestions}
+                  style={[styles.inlineQuestionsButton, {
+                    backgroundColor: theme.colors.primary.main,
+                    marginTop: 12,
+                  }]}
+                >
+                  <Text style={[styles.inlineQuestionsButtonText, { color: theme.colors.primary.contrast }]}>
+                    Sorulara Geç ▶
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </ScrollView>
-          
-          {/* Questions Button */}
-          <View style={[styles.questionsButtonContainer, { backgroundColor: theme.colors.background.default, borderTopColor: theme.colors.border.light }]}>
-            <Button
-              label="Sorulara Geç ▶"
-              onPress={handleShowQuestions}
-              variant="contained"
-              style={styles.questionsButton}
-            />
-          </View>
-        </>
+        </View>
       )}
 
       {/* Dialog Questions */}
       {showQuestions && dialog.questions && dialog.questions.length > 0 && (
-        <ScrollView
-          style={styles.questionsContainer}
-          contentContainerStyle={[styles.content, { padding: theme.spacing.lg }]}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text
-            style={[
-              styles.sectionTitle,
-              {
-                color: theme.colors.text.primary,
-                fontFamily: theme.typography.fontFamily.bold,
-              },
-            ]}
+        <>
+          <ScrollView
+            style={styles.questionsContainer}
+            contentContainerStyle={[styles.content, { 
+              padding: theme.spacing.lg,
+              paddingBottom: 100, // Alt boşluk ekle buton için
+            }]}
+            showsVerticalScrollIndicator={false}
           >
-            Sorular
-          </Text>
-          {dialog.questions.map((question: DialogQuestion, index: number) => {
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: theme.colors.text.primary,
+                  fontFamily: theme.typography.fontFamily.bold,
+                },
+              ]}
+            >
+              Sorular
+            </Text>
+            {dialog.questions.map((question: DialogQuestion, index: number) => {
             const prompt = question.prompts?.[0];
             const questionText = prompt?.questionText || 'Soru';
 
@@ -464,13 +429,21 @@ const DialogDetailScreen = () => {
               </Card>
             );
           })}
-          <Button
-            label="Cevapları Gönder"
-            onPress={handleSubmitQuestions}
-            variant="contained"
-            style={{ marginTop: theme.spacing.md }}
-          />
-        </ScrollView>
+          </ScrollView>
+          
+          {/* Cevapları Gönder butonu - Sabit alt kısımda */}
+          <View style={[styles.submitButtonContainer, {
+            backgroundColor: theme.colors.background.default,
+            borderTopColor: theme.colors.border.light,
+          }]}>
+            <Button
+              title="Soruları Tamamla"
+              onPress={handleSubmitQuestions}
+              variant="primary"
+              fullWidth={true}
+            />
+          </View>
+        </>
       )}
 
       {showQuestions && (!dialog.questions || dialog.questions.length === 0) && (
@@ -624,15 +597,43 @@ const styles = StyleSheet.create({
   translateButtonText: {
     fontSize: 14,
   },
-  questionsButtonContainer: {
-    padding: 16,
-    borderTopWidth: 1,
+  inlineQuestionsButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    minWidth: 140,
   },
-  questionsButton: {
-    width: '100%',
+  inlineQuestionsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   questionsContainer: {
     flex: 1,
+  },
+  endOfDialogPrompt: {
+    marginTop: 20,
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  endOfDialogText: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  submitButtonContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   sectionTitle: {
     fontSize: 22,
