@@ -7,15 +7,17 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
+  Platform,
+  Modal,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../theme/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Input, Card } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
 import { authAPI } from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PersonalInfo'>;
 
@@ -24,8 +26,8 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [birthDate, setBirthDate] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [language, setLanguage] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -39,9 +41,8 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         setName(userData.username || '');
         setEmail(userData.email || '');
         setLanguage(userData.nativeLanguage?.name || 'Türkçe');
-        // Phone and birthDate are not in user model yet
-        setPhone('');
-        setBirthDate('');
+        // birthDate is not in user model yet
+        setBirthDate(null);
       } catch (error: any) {
         console.error('Error loading user data:', error);
         // If API fails, try to get user from login response or use defaults
@@ -135,22 +136,32 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
             containerStyle={styles.inputSpacing}
           />
 
-          <Input
-            label="Telefon"
-            placeholder="Telefon"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            containerStyle={styles.inputSpacing}
-          />
-
-          <Input
-            label="Doğum Tarihi"
-            placeholder="YYYY-MM-DD"
-            value={birthDate}
-            onChangeText={setBirthDate}
-            containerStyle={styles.inputSpacing}
-          />
+          <View style={styles.inputSpacing}>
+            <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+              Doğum Tarihi
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={[styles.dateInputContainer, {
+                backgroundColor: theme.colors.background.paper,
+                borderColor: theme.colors.border.light,
+              }]}
+            >
+              <Text style={[styles.dateInputText, {
+                color: birthDate ? theme.colors.text.primary : theme.colors.text.secondary,
+                fontFamily: theme.typography.fontFamily.regular,
+              }]}>
+                {birthDate
+                  ? birthDate.toLocaleDateString('tr-TR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    })
+                  : 'YYYY-MM-DD'}
+              </Text>
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
 
           <Input
             label="Ana Dil"
@@ -177,6 +188,64 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
           disabled={loading || !name.trim() || !email.trim()}
         />
       </View>
+
+      {Platform.OS === 'ios' ? (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: theme.colors.background.paper }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border.light }]}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={[styles.modalButton, { color: theme.colors.primary.main }]}>İptal</Text>
+                </TouchableOpacity>
+                <Text style={[styles.modalTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+                  Doğum Tarihi Seç
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowDatePicker(false);
+                  }}
+                >
+                  <Text style={[styles.modalButton, { color: theme.colors.primary.main }]}>Tamam</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={birthDate || new Date()}
+                mode="date"
+                display="spinner"
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setBirthDate(selectedDate);
+                  }
+                }}
+                maximumDate={new Date()}
+                locale="tr-TR"
+                style={styles.datePicker}
+              />
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={birthDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) {
+                setBirthDate(selectedDate);
+              }
+            }}
+            maximumDate={new Date()}
+            locale="tr-TR"
+          />
+        )
+      )}
     </SafeAreaView>
   );
 };
@@ -244,6 +313,52 @@ const styles = StyleSheet.create({
   },
   inputSpacing: {
     marginBottom: 0,
+  },
+  inputLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    minHeight: 48,
+  },
+  dateInputText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 18,
+  },
+  modalButton: {
+    fontSize: 16,
+    fontFamily: 'System',
+  },
+  datePicker: {
+    height: 200,
   },
   buttonContainer: {
     position: 'absolute',
