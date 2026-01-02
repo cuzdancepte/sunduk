@@ -44,7 +44,11 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         setBirthDate('');
       } catch (error: any) {
         console.error('Error loading user data:', error);
-        // Keep default values on error
+        // If API fails, try to get user from login response or use defaults
+        // This prevents infinite loading state
+        setName('');
+        setEmail('');
+        setLanguage('Türkçe');
       } finally {
         setInitialLoading(false);
       }
