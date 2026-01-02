@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,15 @@ import {
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  Platform,
+  TextInput,
+  Modal,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
-import { AppStackParamList } from '../../navigation/AppStack';
-
-type Props = NativeStackScreenProps<AppStackParamList, 'Leaderboard'>;
 
 interface LeaderboardUser {
   id: string;
@@ -24,14 +24,17 @@ interface LeaderboardUser {
   points: number;
 }
 
-const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
+const LeaderboardScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const theme = useTheme();
   const { t } = useTranslation();
   const [selectedPeriod, setSelectedPeriod] =
     useState<'weekly' | 'monthly' | 'alltime'>('weekly');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   // Şimdilik mock veri – backend hazır olduğunda API'den gelecek
-  const users: LeaderboardUser[] = [
+  const allUsers: LeaderboardUser[] = [
     { id: '1', rank: 1, name: 'Andrew', points: 872 },
     { id: '2', rank: 2, name: 'Maryland', points: 948 },
     { id: '3', rank: 3, name: 'Charlotte', points: 769 },
@@ -41,8 +44,19 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
     { id: '7', rank: 7, name: 'Clinton Mcclure', points: 537 },
   ];
 
-  const topThree = users.slice(0, 3);
-  const listData = users.slice(3);
+  // Arama filtresi
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allUsers;
+    }
+    const query = searchQuery.toLowerCase();
+    return allUsers.filter(user => 
+      user.name.toLowerCase().includes(query)
+    );
+  }, [searchQuery, allUsers]);
+
+  const topThree = filteredUsers.slice(0, 3);
+  const listData = filteredUsers.slice(3);
 
   const periods = [
     { key: 'weekly' as const, label: t('leaderboard.weekly') },
@@ -63,7 +77,10 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
       <View>
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('PeopleProfileDetails', { userId: item.id })
+            navigation.navigate('App', {
+              screen: 'PeopleProfileDetails',
+              params: { userId: item.id },
+            })
           }
           activeOpacity={0.8}
           style={styles.listItem}
@@ -120,7 +137,7 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
       end={gradient.end}
       style={styles.gradient}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <FlatList
           data={listData}
           keyExtractor={item => item.id}
@@ -146,11 +163,15 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
                         fontFamily: theme.typography.fontFamily.bold,
                       },
                     ]}
+                    numberOfLines={1}
                   >
                     {t('leaderboard.title')}
                   </Text>
                 </View>
-                <TouchableOpacity style={styles.searchButton}>
+                <TouchableOpacity 
+                  style={styles.searchButton}
+                  onPress={() => setIsSearchVisible(true)}
+                >
                   <Ionicons
                     name="search"
                     size={22}
@@ -200,7 +221,17 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
 
                 <View style={styles.podiumRow}>
                   {/* 2. kişi */}
-                  <View style={styles.podiumColumn}>
+                  <TouchableOpacity
+                    style={styles.podiumColumn}
+                    onPress={() =>
+                      topThree[1] &&
+                      navigation.navigate('App', {
+                        screen: 'PeopleProfileDetails',
+                        params: { userId: topThree[1].id },
+                      })
+                    }
+                    activeOpacity={0.8}
+                  >
                     <View style={styles.avatarWrapper}>
                       <View style={styles.avatarOuter}>
                         <Text style={styles.avatarInitial}>
@@ -220,12 +251,29 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
                       </Text>
                     </View>
                     <View style={[styles.podiumBlock, styles.podiumBlockSecond]}>
-                      <Text style={styles.podiumBlockText}>2</Text>
+                      <LinearGradient
+                        colors={['#8F7EF4', '#6F5ED4', '#5F4EC4']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        style={styles.podiumBlockInner}
+                      >
+                        <Text style={styles.podiumBlockText}>2</Text>
+                      </LinearGradient>
                     </View>
-                  </View>
+                  </TouchableOpacity>
 
                   {/* 1. kişi */}
-                  <View style={[styles.podiumColumn, styles.podiumColumnCenter]}>
+                  <TouchableOpacity
+                    style={[styles.podiumColumn, styles.podiumColumnCenter]}
+                    onPress={() =>
+                      topThree[0] &&
+                      navigation.navigate('App', {
+                        screen: 'PeopleProfileDetails',
+                        params: { userId: topThree[0].id },
+                      })
+                    }
+                    activeOpacity={0.8}
+                  >
                     <View style={styles.avatarWrapper}>
                       <View style={styles.avatarOuter}>
                         <Text style={styles.avatarInitial}>
@@ -245,12 +293,29 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
                       </Text>
                     </View>
                     <View style={[styles.podiumBlock, styles.podiumBlockFirst]}>
-                      <Text style={styles.podiumBlockText}>1</Text>
+                      <LinearGradient
+                        colors={['#9B8AFF', '#7B6AEF', '#6B5ADF']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        style={styles.podiumBlockInner}
+                      >
+                        <Text style={styles.podiumBlockText}>1</Text>
+                      </LinearGradient>
                     </View>
-                  </View>
+                  </TouchableOpacity>
 
                   {/* 3. kişi */}
-                  <View style={styles.podiumColumn}>
+                  <TouchableOpacity
+                    style={styles.podiumColumn}
+                    onPress={() =>
+                      topThree[2] &&
+                      navigation.navigate('App', {
+                        screen: 'PeopleProfileDetails',
+                        params: { userId: topThree[2].id },
+                      })
+                    }
+                    activeOpacity={0.8}
+                  >
                     <View style={styles.avatarWrapper}>
                       <View style={styles.avatarOuter}>
                         <Text style={styles.avatarInitial}>
@@ -272,9 +337,16 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
                     <View
                       style={[styles.podiumBlock, styles.podiumBlockThird]}
                     >
-                      <Text style={styles.podiumBlockText}>3</Text>
+                      <LinearGradient
+                        colors={['#8F7EF4', '#6F5ED4', '#5F4EC4']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        style={styles.podiumBlockInner}
+                      >
+                        <Text style={styles.podiumBlockText}>3</Text>
+                      </LinearGradient>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -286,6 +358,41 @@ const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
           }
         />
       </SafeAreaView>
+
+      {/* Arama Modal */}
+      <Modal
+        visible={isSearchVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsSearchVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.background.default }]}>
+            <View style={styles.searchHeader}>
+              <TextInput
+                style={[styles.searchInput, { 
+                  color: theme.colors.text.primary,
+                  borderColor: theme.colors.border.light,
+                }]}
+                placeholder={t('common.search')}
+                placeholderTextColor={theme.colors.text.secondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus={true}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  setIsSearchVisible(false);
+                  setSearchQuery('');
+                }}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={theme.colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -305,13 +412,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 16,
     marginBottom: 24,
+    paddingHorizontal: 4,
+    paddingTop: 8,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
+    flex: 1,
+    marginRight: 12,
   },
   logoBox: {
     width: 32,
@@ -322,9 +433,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
+    flexShrink: 0,
   },
   headerTitle: {
     fontSize: 24,
+    flexShrink: 1,
   },
   searchButton: {
     width: 36,
@@ -334,6 +447,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   chipRow: {
     flexDirection: 'row',
@@ -452,6 +566,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 16,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
   },
   podiumBlockFirst: {
     height: 200,
@@ -465,10 +591,22 @@ const styles = StyleSheet.create({
     height: 150,
     backgroundColor: '#7F6BF4',
   },
+  podiumBlockInner: {
+    width: '100%',
+    height: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 16,
+  },
   podiumBlockText: {
     fontSize: 40,
     fontWeight: '900',
     color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   listContainer: {
     marginTop: 24,
@@ -517,6 +655,40 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     width: '100%',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    paddingTop: 100,
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    minHeight: 200,
+  },
+  searchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    fontFamily: 'Nunito-Regular',
+  },
+  closeButton: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

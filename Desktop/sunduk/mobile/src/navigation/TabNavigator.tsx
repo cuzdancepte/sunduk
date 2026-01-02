@@ -2,14 +2,14 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/useTheme';
 import HomeScreen from '../screens/HomeScreen';
-import LearnScreen from '../screens/LearnScreen';
+import LeaderboardScreen from '../screens/leaderboard/LeaderboardScreen';
 import DialogScreen from '../screens/DialogScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CustomTabBar from '../components/CustomTabBar';
 
 export type TabParamList = {
   Home: undefined;
-  Learn: undefined;
+  Leaderboard: undefined;
   Dialog: undefined;
   Profile: undefined;
 };
@@ -24,6 +24,13 @@ const TabNavigator = () => {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.background.default,
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 'auto',
+        },
       }}
     >
       <Tab.Screen
@@ -31,8 +38,8 @@ const TabNavigator = () => {
         component={HomeScreen}
       />
       <Tab.Screen
-        name="Learn"
-        component={LearnScreen}
+        name="Leaderboard"
+        component={LeaderboardScreen}
       />
       <Tab.Screen
         name="Dialog"

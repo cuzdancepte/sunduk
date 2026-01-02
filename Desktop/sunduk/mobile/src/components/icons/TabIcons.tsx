@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { G, Path, Mask, Rect } from 'react-native-svg';
+import Svg, { G, Path, Mask, Rect, Circle } from 'react-native-svg';
 
 interface TabIconProps {
   size?: number;
@@ -99,6 +99,45 @@ export const LearnIcon: React.FC<TabIconProps> = ({ size = 24, color = '#212121'
             />
           </G>
         </G>
+      </G>
+    </G>
+  </Svg>
+);
+
+// Leaderboard (Liderlik Tablosu) Icon Component - Grafik stili
+export const LeaderboardIcon: React.FC<TabIconProps> = ({ size = 24, color = '#212121' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <G id="Iconly/Light-Outline/Chart">
+      <G id="Chart">
+        {/* Yuvarlatılmış kare outline - diğer ikonlarla aynı boyut */}
+        <Rect 
+          x="3" 
+          y="3" 
+          width="18" 
+          height="18" 
+          rx="3" 
+          stroke={color} 
+          strokeWidth="1.5" 
+          fill="none" 
+        />
+        
+        {/* Yukarı trend çizgisi grafiği */}
+        <Path
+          d="M6 17L8.5 13L11 15L15.5 9L16 17"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        
+        {/* Sağ üst köşede bildirim noktası */}
+        <Circle
+          cx="17"
+          cy="5"
+          r="2.5"
+          fill={color}
+        />
       </G>
     </G>
   </Svg>

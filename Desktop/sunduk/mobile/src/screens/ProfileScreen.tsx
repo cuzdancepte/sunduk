@@ -145,23 +145,8 @@ const ProfileScreen = () => {
         {/* Menu Items */}
         <View style={styles.menuSection}>
           <TouchableOpacity
-            onPress={() => navigation.navigate('App', { screen: 'Leaderboard' })}
-            style={styles.menuItem}
-          >
-            <View style={styles.menuItemLeft}>
-              <View style={[styles.menuIconContainer, { backgroundColor: theme.colors.primary.light + '20' }]}>
-                <Ionicons name="trophy" size={20} color={theme.colors.primary.main} />
-              </View>
-              <Text style={[styles.menuItemText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.medium }]}>
-                {t('profile.leaderboard')}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
             onPress={() => navigation.navigate('App', { screen: 'Premium' })}
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.colors.background.paper }]}
           >
             <View style={styles.menuItemLeft}>
               <View style={[styles.menuIconContainer, { backgroundColor: theme.colors.warning.light + '20' }]}>
@@ -176,10 +161,10 @@ const ProfileScreen = () => {
 
           <TouchableOpacity
             onPress={() => navigation.navigate('App', { screen: 'Settings' })}
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.colors.background.paper }]}
           >
             <View style={styles.menuItemLeft}>
-              <View style={[styles.menuIconContainer, { backgroundColor: theme.colors.grey[200] }]}>
+              <View style={[styles.menuIconContainer, { backgroundColor: theme.colors.background.light }]}>
                 <Ionicons name="settings-outline" size={20} color={theme.colors.text.primary} />
               </View>
               <Text style={[styles.menuItemText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.medium }]}>
@@ -191,10 +176,10 @@ const ProfileScreen = () => {
 
           <TouchableOpacity
             onPress={() => navigation.navigate('App', { screen: 'HelpCenterFAQ' })}
-            style={styles.menuItem}
+            style={[styles.menuItem, { backgroundColor: theme.colors.background.paper }]}
           >
             <View style={styles.menuItemLeft}>
-              <View style={[styles.menuIconContainer, { backgroundColor: theme.colors.grey[200] }]}>
+              <View style={[styles.menuIconContainer, { backgroundColor: theme.colors.background.light }]}>
                 <Ionicons name="help-circle-outline" size={20} color={theme.colors.text.primary} />
               </View>
               <Text style={[styles.menuItemText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.medium }]}>
@@ -313,7 +298,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#f8f9fa',
   },
   menuItemLeft: {
     flexDirection: 'row',

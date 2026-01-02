@@ -23,6 +23,7 @@ import HelpCenterContactScreen from '../screens/settings/HelpCenterContactScreen
 import AboutScreen from '../screens/settings/AboutScreen';
 import LogoutModalScreen from '../screens/settings/LogoutModalScreen';
 import LanguageSettingsScreen from '../screens/settings/LanguageSettingsScreen';
+import InviteFriendScreen from '../screens/settings/InviteFriendScreen';
 
 export type AppStackParamList = {
   LevelDetail: { levelId: string };
@@ -42,6 +43,7 @@ export type AppStackParamList = {
   AccessibilitySettings: undefined;
   SecuritySettings: undefined;
   LanguageSettings: undefined;
+  InviteFriend: undefined;
   HelpCenterFAQ: undefined;
   HelpCenterSearch: undefined;
   HelpCenterContact: undefined;
@@ -106,7 +108,7 @@ const AppStack = () => {
       <Stack.Screen
         name="PeopleProfileDetails"
         component={PeopleProfileDetailsScreen}
-        options={{ title: 'Profil Detayları' }}
+        options={{ title: 'Profil Detayları', headerShown: false }}
       />
       <Stack.Screen
         name="Premium"
@@ -152,6 +154,11 @@ const AppStack = () => {
         name="LanguageSettings"
         component={LanguageSettingsScreen}
         options={{ title: 'Dil Ayarları', headerShown: false }}
+      />
+      <Stack.Screen
+        name="InviteFriend"
+        component={InviteFriendScreen}
+        options={{ title: 'Arkadaşını Davet Et', headerShown: false }}
       />
       <Stack.Screen
         name="HelpCenterFAQ"

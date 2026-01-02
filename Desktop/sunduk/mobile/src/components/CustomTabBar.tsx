@@ -3,16 +3,24 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { HomeIcon, LearnIcon, DialogIcon, ProfileIcon } from './icons/TabIcons';
-import { useTheme } from '../theme/useTheme';
+import { HomeIcon, LeaderboardIcon, DialogIcon, ProfileIcon } from './icons/TabIcons';
+import { useTheme, useThemeContext } from '../theme/useTheme';
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View style={[
+      styles.tabBar, 
+      { 
+        paddingBottom: Math.max(insets.bottom, 8),
+        backgroundColor: theme.colors.background.default,
+        overflow: 'hidden',
+      }
+    ]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label = options.tabBarLabel !== undefined
@@ -51,8 +59,8 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 
         if (route.name === 'Home') {
           IconComponent = <HomeIcon size={iconSize} color={iconColor} />;
-        } else if (route.name === 'Learn') {
-          IconComponent = <LearnIcon size={iconSize} color={iconColor} />;
+        } else if (route.name === 'Leaderboard') {
+          IconComponent = <LeaderboardIcon size={iconSize} color={iconColor} />;
         } else if (route.name === 'Dialog') {
           IconComponent = <DialogIcon size={iconSize} color={iconColor} />;
         } else if (route.name === 'Profile') {
@@ -62,7 +70,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
         // Label text'leri
         const labelTexts: { [key: string]: string } = {
           Home: t('tabs.home'),
-          Learn: t('tabs.learn'),
+          Leaderboard: t('tabs.leaderboard'),
           Dialog: t('tabs.dialog'),
           Profile: t('tabs.profile'),
         };
@@ -107,11 +115,8 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     paddingTop: 8,
     paddingHorizontal: 32,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     alignItems: 'center',
     justifyContent: 'flex-start',
     minHeight: 82,

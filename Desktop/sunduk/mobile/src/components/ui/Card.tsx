@@ -19,7 +19,7 @@ const Card: React.FC<CardProps> = ({
 
   const getCardStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.paper,
       borderRadius: theme.borderRadius.large, // 24 - Figma'dan
     };
 

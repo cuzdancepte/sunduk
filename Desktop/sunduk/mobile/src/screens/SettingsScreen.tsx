@@ -12,7 +12,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../theme/useTheme';
+import { useTheme, useThemeContext } from '../theme/useTheme';
 import { AppStackParamList } from '../navigation/AppStack';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Settings'>;
@@ -32,7 +32,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const { currentLanguage, availableLanguages } = useLanguage();
-  const [darkMode, setDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useThemeContext();
   
   // Seçili dilin adını bul
   const currentLanguageName = availableLanguages.find(
@@ -55,13 +55,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       iconColor: '#F44336',
       iconBgColor: '#FFEBEE',
       screen: 'NotificationSettings',
-    },
-    {
-      id: 'general',
-      title: t('settings.general'),
-      icon: 'grid-outline',
-      iconColor: '#6949FF',
-      iconBgColor: 'rgba(105,73,255,0.08)',
     },
     {
       id: 'app-language',
@@ -88,11 +81,12 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       screen: 'SecuritySettings',
     },
     {
-      id: 'find-friends',
-      title: t('settings.findFriends'),
-      icon: 'people-outline',
+      id: 'invite-friend',
+      title: t('settings.inviteFriend'),
+      icon: 'person-add-outline',
       iconColor: '#FF9800',
       iconBgColor: 'rgba(255,152,0,0.08)',
+      screen: 'InviteFriend',
     },
     {
       id: 'dark-mode',
@@ -207,8 +201,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               </View>
               {item.hasToggle ? (
                 <Switch
-                  value={darkMode}
-                  onValueChange={setDarkMode}
+                  value={isDarkMode}
+                  onValueChange={toggleDarkMode}
                   trackColor={{
                     false: '#EEEEEE',
                     true: theme.colors.primary.main,

@@ -60,7 +60,7 @@
     "general": "General",
     "accessibility": "Accessibility",
     "security": "Security",
-    "findFriends": "Find Friends",
+    "inviteFriend": "Invite Friend",
     "darkMode": "Dark Mode",
     "appLanguage": "App Language",
     "languageDescription": "Select the language for the app interface.",
@@ -70,7 +70,7 @@
   },
   "tabs": {
     "home": "Home",
-    "learn": "Learn",
+    "leaderboard": "Leaderboard",
     "dialog": "Dialog",
     "profile": "Profile"
   },

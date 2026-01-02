@@ -60,7 +60,7 @@
     "general": "Genel",
     "accessibility": "Erişilebilirlik",
     "security": "Güvenlik",
-    "findFriends": "Arkadaş Bul",
+    "inviteFriend": "Arkadaşını Davet Et",
     "darkMode": "Karanlık Mod",
     "appLanguage": "Uygulama Dili",
     "languageDescription": "Uygulama arayüzünün görüntüleneceği dili seçin.",
@@ -70,7 +70,7 @@
   },
   "tabs": {
     "home": "Ana Sayfa",
-    "learn": "Öğren",
+    "leaderboard": "Sıralama",
     "dialog": "Dialog",
     "profile": "Profil"
   },

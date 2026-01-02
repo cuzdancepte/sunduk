@@ -19,7 +19,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Svg, { Line } from 'react-native-svg';
 import { contentAPI } from '../services/api';
 import { Level } from '../types';
-import { useTheme } from '../theme/useTheme';
+import { useTheme, useThemeContext } from '../theme/useTheme';
 import { LoadingSpinner } from '../components/ui';
 import TopBar from '../components/TopBar';
 import LessonCard from '../components/LessonCard';
@@ -32,6 +32,7 @@ const CONTENT_EXTRA_HEIGHT = 64;
 
 const HomeScreen = () => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -299,9 +300,9 @@ const HomeScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar
-        barStyle="light-content"
+        barStyle={isDarkMode ? 'light-content' : 'light-content'}
         backgroundColor={theme.colors.primary.main}
         translucent={false}
       />
@@ -318,7 +319,7 @@ const HomeScreen = () => {
 
       <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: theme.colors.background.default }]}
         contentContainerStyle={[
           styles.scrollContent,
           {
@@ -336,6 +337,7 @@ const HomeScreen = () => {
               width: screenWidth,
               minHeight: contentHeight,
               paddingHorizontal: gridPadding,
+              backgroundColor: theme.colors.background.default,
             },
           ]}
         >
@@ -371,7 +373,6 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   topBarContainer: {
     backgroundColor: '#6949FF',
@@ -379,12 +380,10 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   scrollContent: {},
   contentContainer: {
     position: 'relative',
-    backgroundColor: '#FFFFFF',
   },
   unitCardWrapper: {
     position: 'absolute',
