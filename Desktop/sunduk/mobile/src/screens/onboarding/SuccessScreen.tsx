@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../theme/useTheme';
+import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
@@ -16,6 +16,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Success'>;
 
 const SuccessScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -40,7 +41,7 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Top Bar - Figma: y=0, height=44 */}
         <View style={[styles.topBar, { top: insets.top }]}>
@@ -63,7 +64,7 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.speechBubbleContainer}>
               <SpeechBubble width={200} height={64} />
               <View style={styles.speechTextContainer}>
-                <Text style={[styles.hurrayText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                <Text style={[styles.hurrayText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                   Hurray!!
                 </Text>
               </View>
@@ -75,14 +76,14 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={[styles.welcomeText, { color: '#6949FF', fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.success.title')}
             </Text>
-            <Text style={[styles.subtitleText, { color: '#616161', fontFamily: theme.typography.fontFamily.bold }]}>
+            <Text style={[styles.subtitleText, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.success.subtitle')}
             </Text>
           </View>
         </View>
 
         {/* Bottom Button - Figma: absolute bottom, height=118 */}
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, { backgroundColor: theme.colors.background.paper, borderTopColor: theme.colors.border.light }]}>
           <Button
             title={t('onboarding.success.continueToHome')}
             onPress={handleContinue}
@@ -100,7 +101,6 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -195,8 +195,6 @@ const styles = StyleSheet.create({
     paddingTop: 24, // Figma: pt-[24px]
     paddingBottom: 36, // Figma: pb-[36px]
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE', // Figma: border-neutral-100
-    backgroundColor: '#FFFFFF',
   },
   continueButton: {
     backgroundColor: '#6949FF',

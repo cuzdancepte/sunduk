@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../theme/useTheme';
+import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button } from '../../components/ui';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import WelcomeLogo from '../../components/WelcomeLogo';
@@ -14,6 +14,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
 
 const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const { t } = useTranslation();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -32,7 +33,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Top Bar - Figma: y=0, height=44 */}
         <View style={[styles.topBar, { top: insets.top }]}>
@@ -49,7 +50,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.speechBubbleContainer}>
               <SpeechBubble width={200} height={64} />
               <View style={styles.speechTextContainer}>
-                <Text style={[styles.speechText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                <Text style={[styles.speechText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                   Hi there! I'm El!
                 </Text>
               </View>
@@ -66,7 +67,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
               {t('onboarding.welcome.title')}
             </Text>
             <Text 
-              style={[styles.subtitle, { color: '#616161', fontFamily: theme.typography.fontFamily.bold }]}
+              style={[styles.subtitle, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.bold }]}
               numberOfLines={0}
             >
               {t('onboarding.welcome.subtitle')}
@@ -75,7 +76,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* Bottom Buttons - Absolute positioned at bottom */}
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, { backgroundColor: theme.colors.background.paper, borderTopColor: theme.colors.border.light }]}>
           <Button
             title={t('onboarding.welcome.getStarted')}
             onPress={() => navigation.navigate('LanguageSelection')}
@@ -103,13 +104,13 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
             size="medium"
             fullWidth
             style={[styles.loginButton, { 
-              backgroundColor: '#F0EDFF',
+              backgroundColor: isDarkMode ? theme.colors.background.paper : '#F0EDFF',
               borderColor: 'transparent',
               borderRadius: 100,
               paddingVertical: 18,
               paddingHorizontal: 16,
             }]}
-            textStyle={{ color: '#6949FF', fontFamily: theme.typography.fontFamily.bold }}
+            textStyle={{ color: theme.colors.primary.main, fontFamily: theme.typography.fontFamily.bold }}
           />
         </View>
       </SafeAreaView>
@@ -120,7 +121,6 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -222,7 +222,6 @@ const styles = StyleSheet.create({
     gap: 24, // Figma: gap-[24px]
     borderTopWidth: 1,
     borderTopColor: '#EEEEEE', // Figma: border-neutral-100
-    backgroundColor: '#FFFFFF',
   },
   startButton: {
     marginBottom: 0,

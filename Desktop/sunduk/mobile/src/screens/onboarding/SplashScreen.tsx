@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme } from '../../theme/useTheme';
+import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import Logo from '../../components/Logo';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -10,6 +10,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Splash'>;
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
 
   useEffect(() => {
     // 2 saniye sonra Welcome ekranına yönlendir
@@ -22,7 +23,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Top Bar - Status Bar (44px height) */}
         <View style={styles.topBar}>
@@ -40,7 +41,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           {/* App Name - 48px, bold, #212121, 20px gap from logo */}
-          <Text style={[styles.appName, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+          <Text style={[styles.appName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
             Sunduk
           </Text>
         </View>
@@ -57,7 +58,6 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,

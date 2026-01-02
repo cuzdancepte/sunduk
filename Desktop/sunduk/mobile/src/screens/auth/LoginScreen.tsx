@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { authAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../theme/useTheme';
+import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button, Checkbox } from '../../components/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackButton from '../../components/BackButton';
@@ -26,6 +26,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [email, setEmail] = useState('');
@@ -73,7 +74,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Top Bar - Figma: y=0, height=44 */}
         <View style={[styles.topBar, { top: insets.top }]}>
@@ -85,7 +86,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.backButton}
             activeOpacity={0.7}
           >
-            <BackButton width={28} height={28} color="#212121" />
+            <BackButton width={28} height={28} color={theme.colors.text.primary} />
           </TouchableOpacity>
           <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
             9:41
@@ -99,7 +100,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         >
           {/* Header/Greeting - Figma: "Hello there 👋" */}
           <View style={styles.headerSection}>
-            <Text style={[styles.greetingText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+            <Text style={[styles.greetingText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               Hello there 👋
             </Text>
           </View>
@@ -108,14 +109,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.formSection}>
             {/* Email Input */}
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                 Email
               </Text>
               <View style={styles.inputWrapper}>
                 <TextInput
-                  style={[styles.input, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                  style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
                   placeholder="andrew.ainsley@yourdomain.com"
-                  placeholderTextColor="#9E9E9E"
+                  placeholderTextColor={theme.colors.text.secondary}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -128,15 +129,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* Password Input */}
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                 Password
               </Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.passwordInputContainer}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                    style={[styles.input, styles.passwordInput, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
                     placeholder="Enter your password"
-                    placeholderTextColor="#9E9E9E"
+                    placeholderTextColor={theme.colors.text.secondary}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
@@ -164,7 +165,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                   size={24}
                   color="#6949FF"
                 />
-                <Text style={[styles.rememberMeText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                <Text style={[styles.rememberMeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                   Remember me
                 </Text>
               </View>
@@ -202,7 +203,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,

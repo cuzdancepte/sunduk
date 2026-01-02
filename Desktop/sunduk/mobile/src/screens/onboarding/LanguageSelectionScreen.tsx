@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Sta
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../theme/useTheme';
+import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button, ProgressBar } from '../../components/ui';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,6 +33,7 @@ const appLanguages = [
 
 const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -49,7 +50,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Top Bar - Figma: y=0, height=44 */}
         <View style={[styles.topBar, { top: insets.top }]}>
@@ -73,7 +74,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
               onPress={() => navigation.goBack()}
               style={styles.backButton}
             >
-              <BackButton width={28} height={28} color="#212121" />
+              <BackButton width={28} height={28} color={theme.colors.text.primary} />
             </TouchableOpacity>
             <View style={styles.progressBarContainer}>
               <ProgressBar
@@ -100,7 +101,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.speechBubbleGroup, { width: speechBubbleWidth }]}>
               <Bubble1 width={speechBubbleWidth} height={116} />
               <View style={styles.speechTextContainer}>
-                <Text style={[styles.speechText, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                <Text style={[styles.speechText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                   What language do you want to use for Sunduk?
                 </Text>
               </View>
@@ -108,12 +109,12 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           {/* Divider - Figma: y=172, height=0 (1px line) */}
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.colors.border.light }]} />
 
           {/* Language Selection Section - Figma: y=204, gap=20px */}
           <View style={styles.languageSection}>
             {/* Your Native Language */}
-            <Text style={[styles.sectionTitle, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.languageSelection.title')}
             </Text>
             {(() => {
@@ -133,7 +134,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
                       style={[
                         styles.languageName,
                         {
-                          color: '#212121',
+                          color: theme.colors.text.primary,
                           fontFamily: theme.typography.fontFamily.bold,
                         },
                       ]}
@@ -170,14 +171,17 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
                               setShowNativeOptions(false);
                             }}
                             activeOpacity={0.7}
-                            style={[styles.languageCard, styles.unselectedCard]}
+                            style={[styles.languageCard, styles.unselectedCard, { 
+                              backgroundColor: theme.colors.background.paper,
+                              borderColor: theme.colors.border.light,
+                            }]}
                           >
                             <Text style={styles.flag}>{lang.flag}</Text>
                             <Text
                               style={[
                                 styles.languageName,
                                 {
-                                  color: '#212121',
+                                  color: theme.colors.text.primary,
                                   fontFamily: theme.typography.fontFamily.bold,
                                 },
                               ]}
@@ -193,7 +197,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
             })()}
 
             {/* App Language */}
-            <Text style={[styles.sectionTitle, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.languageSelection.appLanguage')}
             </Text>
             {appLanguages.map((lang) => (
@@ -201,13 +205,16 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
                 key={lang.code}
                 onPress={() => setSelectedAppLanguage(lang.code)}
                 activeOpacity={0.7}
-                style={[
-                  styles.languageCard,
-                  selectedAppLanguage === lang.code ? styles.selectedCard : styles.unselectedCard,
-                ]}
+            style={[
+              styles.languageCard,
+              selectedAppLanguage === lang.code ? styles.selectedCard : [styles.unselectedCard, { 
+                backgroundColor: theme.colors.background.paper,
+                borderColor: theme.colors.border.light,
+              }],
+            ]}
               >
                 <Text style={styles.flag}>{lang.flag}</Text>
-                <Text style={[styles.languageName, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+                <Text style={[styles.languageName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                   {lang.name}
                 </Text>
               </TouchableOpacity>
@@ -216,7 +223,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
         </ScrollView>
 
         {/* Bottom Button - Figma: absolute bottom, height=118 */}
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, { backgroundColor: theme.colors.background.paper, borderTopColor: theme.colors.border.light }]}>
           <Button
             title={t('onboarding.languageSelection.continue')}
             onPress={async () => {
@@ -238,7 +245,6 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -339,7 +345,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1, // Figma: height=0 (1px line)
-    backgroundColor: '#EEEEEE', // Figma: border-neutral-100
     width: '100%',
   },
   languageSection: {
@@ -380,9 +385,7 @@ const styles = StyleSheet.create({
     borderColor: '#6949FF', // Figma: border-[#6949ff]
   },
   unselectedCard: {
-    backgroundColor: '#FFFFFF', // Figma: bg-white
     borderWidth: 2, // Figma: border-2
-    borderColor: '#EEEEEE', // Figma: border-[#eeeeee]
   },
   flag: {
     fontSize: 60, // Figma: text-[60px]
@@ -418,8 +421,6 @@ const styles = StyleSheet.create({
     paddingTop: 24, // Figma: pt-[24px]
     paddingBottom: 36, // Figma: pb-[36px]
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE', // Figma: border-neutral-100
-    backgroundColor: '#FFFFFF',
   },
   continueButton: {
     backgroundColor: '#6949FF',

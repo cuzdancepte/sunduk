@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, SafeAreaView, StatusBar, useWindowDimensions, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme } from '../../theme/useTheme';
+import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button, ProgressBar } from '../../components/ui';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Name'>;
 
 const NameScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDarkMode } = useThemeContext();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [name, setName] = useState('');
@@ -28,7 +29,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Top Bar - Figma: y=0, height=44 */}
         <View style={[styles.topBar, { top: insets.top }]}>
@@ -53,7 +54,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
               style={[styles.backButton, { marginHorizontal: 24 }]}
               activeOpacity={0.7}
             >
-              <BackButton width={28} height={28} color="#212121" />
+              <BackButton width={28} height={28} color={theme.colors.text.primary} />
             </TouchableOpacity>
             <View style={styles.progressBarContainer}>
               <ProgressBar
@@ -71,21 +72,21 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.contentSection}>
             {/* Title */}
             <View style={styles.titleContainer}>
-              <Text style={[styles.title, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              <Text style={[styles.title, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                 Create your account
               </Text>
             </View>
 
             {/* Full Name Input Section - Figma: gap=16px */}
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                 Full Name
               </Text>
               <View style={styles.inputWrapper}>
                 <TextInput
-                  style={[styles.input, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                  style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
                   placeholder="Enter your full name"
-                  placeholderTextColor="#9E9E9E"
+                  placeholderTextColor={theme.colors.text.secondary}
                   value={name}
                   onChangeText={setName}
                   autoCapitalize="words"
@@ -97,14 +98,14 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* Email Input Section - Figma: gap=16px */}
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                 Email
               </Text>
               <View style={styles.inputWrapper}>
                 <TextInput
-                  style={[styles.input, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                  style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
                   placeholder="Enter your email address"
-                  placeholderTextColor="#9E9E9E"
+                  placeholderTextColor={theme.colors.text.secondary}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -117,15 +118,15 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
 
             {/* Password Input Section - Figma: gap=16px */}
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}>
+              <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
                 Password
               </Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.passwordInputContainer}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { color: '#212121', fontFamily: theme.typography.fontFamily.bold }]}
+                    style={[styles.input, styles.passwordInput, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
                     placeholder="Enter your password"
-                    placeholderTextColor="#9E9E9E"
+                    placeholderTextColor={theme.colors.text.secondary}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
@@ -147,7 +148,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
         </ScrollView>
 
         {/* Bottom Button - Figma: absolute bottom, height=118 */}
-        <View style={styles.buttonContainer}>
+        <View style={[styles.buttonContainer, { backgroundColor: theme.colors.background.paper, borderTopColor: theme.colors.border.light }]}>
           <Button
             title="Continue"
             onPress={async () => {
@@ -200,7 +201,6 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -318,8 +318,6 @@ const styles = StyleSheet.create({
     paddingTop: 24, // Figma: pt-[24px]
     paddingBottom: 36, // Figma: pb-[36px]
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE', // Figma: border-neutral-100
-    backgroundColor: '#FFFFFF',
   },
   continueButton: {
     backgroundColor: '#6949FF',

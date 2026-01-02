@@ -10,6 +10,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Input, Card } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
 
@@ -17,6 +18,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'PersonalInfo'>;
 
 const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('Ahmet Yılmaz');
   const [email, setEmail] = useState('ahmet@example.com');
   const [phone, setPhone] = useState('+90 555 123 4567');
@@ -43,7 +45,10 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 160 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
         <Card variant="default" padding="large" style={styles.avatarCard}>
           <View style={styles.avatarContainer}>
             <View style={[styles.avatar, { backgroundColor: theme.colors.primary.main }]}>
@@ -51,7 +56,7 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
                 {name.charAt(0).toUpperCase()}
               </Text>
             </View>
-            <TouchableOpacity style={styles.editAvatarButton}>
+            <TouchableOpacity style={[styles.editAvatarButton, { backgroundColor: theme.colors.primary.main, borderColor: theme.colors.background.paper }]}>
               <Ionicons name="camera" size={20} color={theme.colors.text.white} />
             </TouchableOpacity>
           </View>
@@ -103,7 +108,11 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
+      <View style={[styles.buttonContainer, { 
+        backgroundColor: theme.colors.background.paper, 
+        borderTopColor: theme.colors.border.light,
+        paddingBottom: 40 + insets.bottom,
+      }]}>
         <Button
           title="Kaydet"
           onPress={handleSave}
@@ -143,7 +152,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 140, // Button container height (20 + 56 + 40) + extra space
   },
   avatarCard: {
     alignItems: 'center',
@@ -170,11 +179,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#6949ff',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#ffffff',
   },
   formContainer: {
     gap: 16,
@@ -189,9 +196,7 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
 });
 
