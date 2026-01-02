@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,21 +14,70 @@ import { useTheme } from '../../theme/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Input, Card } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
+import { authAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PersonalInfo'>;
 
 const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const [name, setName] = useState('Ahmet Yılmaz');
-  const [email, setEmail] = useState('ahmet@example.com');
-  const [phone, setPhone] = useState('+90 555 123 4567');
-  const [birthDate, setBirthDate] = useState('1990-01-01');
-  const [language, setLanguage] = useState('Türkçe');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [language, setLanguage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  const handleSave = () => {
-    // TODO: API call to save personal info
-    navigation.goBack();
+  // Load user data on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setInitialLoading(true);
+        const userData = await authAPI.getCurrentUser();
+        setName(userData.username || '');
+        setEmail(userData.email || '');
+        setLanguage(userData.nativeLanguage?.name || 'Türkçe');
+        // Phone and birthDate are not in user model yet
+        setPhone('');
+        setBirthDate('');
+      } catch (error: any) {
+        console.error('Error loading user data:', error);
+        // Keep default values on error
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  const handleSave = async () => {
+    if (!name.trim() || !email.trim()) {
+      Alert.alert('Hata', 'Ad Soyad ve Email alanları zorunludur');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authAPI.updateProfile({
+        username: name.trim(),
+        email: email.trim(),
+        // nativeLanguageId can be added when language selection is implemented
+      });
+      Alert.alert('Başarılı', 'Bilgileriniz güncellendi', [
+        { text: 'Tamam', onPress: () => navigation.goBack() },
+      ]);
+    } catch (error: any) {
+      console.error('Update profile error:', error);
+      Alert.alert(
+        'Hata',
+        error.response?.data?.error || 'Bilgiler güncellenirken bir hata oluştu'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -119,6 +169,8 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
           variant="primary"
           size="large"
           fullWidth
+          loading={loading}
+          disabled={loading || !name.trim() || !email.trim()}
         />
       </View>
     </SafeAreaView>

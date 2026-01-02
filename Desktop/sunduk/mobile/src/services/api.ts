@@ -106,6 +106,20 @@ export const authAPI = {
   logout: async () => {
     await removeToken();
   },
+
+  getCurrentUser: async (): Promise<any> => {
+    const response = await api.get('/auth/profile');
+    return response.data;
+  },
+
+  updateProfile: async (data: {
+    username?: string;
+    email?: string;
+    nativeLanguageId?: string;
+  }): Promise<any> => {
+    const response = await api.put('/auth/profile', data);
+    return response.data;
+  },
 };
 
 // Content API
@@ -181,4 +195,3 @@ export const contentAPI = {
 };
 
 export default api;
-

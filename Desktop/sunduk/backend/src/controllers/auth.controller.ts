@@ -183,3 +183,78 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+export const updateProfile = async (req: any, res: Response) => {
+  try {
+    const userId = req.userId;
+    const { username, email, nativeLanguageId } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update data object
+    const updateData: any = {};
+    
+    if (username) {
+      updateData.username = username;
+    }
+    
+    if (email && email !== user.email) {
+      // Check if email is already taken
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+      updateData.email = email;
+    }
+
+    if (nativeLanguageId) {
+      // Verify language exists
+      const language = await prisma.language.findFirst({
+        where: {
+          OR: [
+            { code: nativeLanguageId },
+            { id: nativeLanguageId },
+          ],
+        },
+      });
+      if (!language) {
+        return res.status(400).json({ error: 'Language not found' });
+      }
+      updateData.nativeLanguageId = language.id;
+    }
+
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        nativeLanguageId: true,
+        learningLanguageId: true,
+      },
+    });
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: updatedUser,
+    });
+  } catch (error: any) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
