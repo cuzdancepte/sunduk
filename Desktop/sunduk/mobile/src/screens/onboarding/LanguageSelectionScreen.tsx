@@ -7,7 +7,7 @@ import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button, ProgressBar } from '../../components/ui';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Character from '../../components/Character';
+import SplashMascot from '../../components/SplashMascot';
 import Bubble1 from '../../components/Bubble1';
 import BackButton from '../../components/BackButton';
 
@@ -46,22 +46,15 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
   const progress = 92 / 216; // Yaklaşık %42.86
 
   // Speech bubble responsive width: ekrana göre ayarla
-  const speechBubbleWidth = Math.min(242, screenWidth - 140 - 48); // 140 (character) + 48 (padding)
+  const speechBubbleWidth = Math.min(242, screenWidth - 180 - 48); // 180 (character) + 48 (padding)
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Top Bar - Figma: y=0, height=44 */}
-        <View style={[styles.topBar, { top: insets.top }]}>
-          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-            9:41
-          </Text>
-        </View>
-
         {/* Main Content Area - Figma: x=24, y=44, width=382, height=888 */}
         <ScrollView
-          style={styles.scrollView}
+          style={[styles.scrollView, { marginTop: insets.top }]}
           contentContainerStyle={[
             styles.scrollContent,
             { paddingBottom: 200 }, // Bottom button için alan bırak
@@ -80,7 +73,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
               <ProgressBar
                 progress={progress * 100}
                 height={12}
-                color="#6949FF"
+                color="#0d9cdd"
                 backgroundColor="#EEEEEE"
                 style={styles.progressBar}
               />
@@ -92,9 +85,9 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
           <View style={[styles.characterSection, { width: '100%' }]}>
             {/* Character Frame - Figma: x=0, y=0, width=140, height=140 */}
             <View style={styles.characterFrame}>
-              {/* Character - Figma: x=10, y=1, width=120, height=138.65 */}
+              {/* Character - SplashMascot ile değiştirildi */}
               <View style={styles.characterContainer}>
-                <Character width={120} height={139} />
+                <SplashMascot size={180} />
               </View>
             </View>
             {/* Speech Bubble Group - Figma: x=140, y=12, width=242, height=116 */}
@@ -149,7 +142,7 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
                         style={[
                           styles.changeButton,
                           {
-                            color: '#6949FF',
+                            color: '#0d9cdd',
                             fontFamily: theme.typography.fontFamily.bold,
                           },
                         ]}
@@ -249,24 +242,8 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  topBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 44, // Figma exact: 44px
-    paddingLeft: 23, // Figma: left-[23px]
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  timeText: {
-    fontSize: 16, // Figma: text-[16px]
-    fontWeight: '600', // Figma: font-semibold
-    letterSpacing: 0.2, // Figma: tracking-[0.2px]
-    lineHeight: 22.4, // Figma: leading-[1.4]
-  },
   scrollView: {
     flex: 1,
-    marginTop: 44, // Top bar height
   },
   scrollContent: {
     paddingTop: 16, // Figma: pt-[16px]
@@ -307,21 +284,23 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   characterFrame: {
-    width: 140, // Figma exact: 140px
-    height: 140, // Figma exact: 140px
+    width: 180, // %50 artırıldı (140 -> 180)
+    height: 180, // %50 artırıldı (140 -> 180)
     position: 'relative',
     flexShrink: 0,
   },
   characterContainer: {
     position: 'absolute',
-    left: 10, // Figma: x=10
-    top: 1, // Figma: y=1
-    width: 120, // Figma exact: 120px
-    height: 139, // Figma exact: 138.65px (rounded to 139)
+    left: 0, // Ortalanmış
+    top: 0, // Ortalanmış
+    width: 180, // %50 artırıldı (120 -> 180)
+    height: 180, // %50 artırıldı (139 -> 180)
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   speechBubbleGroup: {
     position: 'absolute',
-    left: 140, // Figma: x=140
+    left: 180, // Maskot büyüdüğü için güncellendi (140 -> 180)
     top: 12, // Figma: y=12
     height: 116, // Figma exact: 116px
     alignItems: 'center',
@@ -360,9 +339,9 @@ const styles = StyleSheet.create({
   selectedLanguageCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(105, 73, 255, 0.08)', // Figma: bg-[rgba(105,73,255,0.08)]
+    backgroundColor: 'rgba(13, 156, 221, 0.08)', // #0d9cdd with 0.08 opacity
     borderWidth: 4, // Figma: border-4
-    borderColor: '#6949FF', // Figma: border-[#6949ff]
+    borderColor: '#0d9cdd', // Welcome ekranı ile aynı renk
     borderRadius: 24, // Figma: rounded-[24px]
     paddingHorizontal: 20, // Figma: px-[20px]
     paddingVertical: 12, // Figma: py-[12px]
@@ -380,9 +359,9 @@ const styles = StyleSheet.create({
     height: 84, // Figma exact: 84px
   },
   selectedCard: {
-    backgroundColor: 'rgba(105, 73, 255, 0.08)', // Figma: bg-[rgba(105,73,255,0.08)]
+    backgroundColor: 'rgba(13, 156, 221, 0.08)', // #0d9cdd with 0.08 opacity
     borderWidth: 4, // Figma: border-4
-    borderColor: '#6949FF', // Figma: border-[#6949ff]
+    borderColor: '#0d9cdd', // Welcome ekranı ile aynı renk
   },
   unselectedCard: {
     borderWidth: 2, // Figma: border-2
@@ -417,21 +396,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24, // Figma: px-[24px]
+    paddingHorizontal: 32, // Welcome ekranı ile aynı (24 -> 32)
     paddingTop: 24, // Figma: pt-[24px]
     paddingBottom: 36, // Figma: pb-[36px]
     borderTopWidth: 1,
   },
   continueButton: {
-    backgroundColor: '#6949FF',
+    backgroundColor: '#0d9cdd', // Welcome ekranı ile aynı renk
     borderRadius: 100, // Figma: rounded-[100px]
-    paddingVertical: 18, // Figma: py-[18px]
+    paddingVertical: 15, // Welcome ekranı ile aynı (18 -> 15)
     paddingHorizontal: 16, // Figma: px-[16px]
-    shadowColor: '#6949FF',
-    shadowOffset: { width: 4, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowColor: '#0d9cdd',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
 

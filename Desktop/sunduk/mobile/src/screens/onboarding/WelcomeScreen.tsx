@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button } from '../../components/ui';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
-import WelcomeLogo from '../../components/WelcomeLogo';
+import SplashMascot from '../../components/SplashMascot';
+import FlyingBird from '../../components/FlyingBird';
 import SpeechBubble from '../../components/SpeechBubble';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
@@ -31,39 +32,105 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   // Content width: Figma'da 382px ama ekran genişliğine göre ayarla
   const contentWidth = Math.min(382, screenWidth - 48); // 24px padding each side
 
+  // Martı animasyonu için state
+  const [birds, setBirds] = useState<Array<{
+    id: number;
+    startY: number;
+    delay: number;
+    duration: number;
+    direction: 'left' | 'right';
+    size: number;
+  }>>([]);
+
+  useEffect(() => {
+    // İlk 3 martıyı farklı zamanlarda başlat
+    const initialDelay = 2000;
+    
+    // Her 4-6 saniyede bir yeni martı ekle (daha sık)
+    const addBird = () => {
+      setBirds(prev => {
+        // Maksimum 3 martı olsun
+        if (prev.length >= 3) {
+          return prev;
+        }
+
+        const newBird = {
+          id: Date.now() + Math.random(),
+          startY: Math.random() * 200 + 50, // 50-250 arası rastgele yükseklik
+          delay: Math.random() * 1000, // 0-1 saniye rastgele gecikme
+          duration: 3000 + Math.random() * 2000, // 3-5 saniye uçuş süresi
+          direction: Math.random() > 0.5 ? 'right' : 'left' as 'left' | 'right',
+          size: 45 + Math.random() * 30, // 45-75 arası rastgele boyut (%50 büyütülmüş)
+        };
+        
+        // Martı ekrandan çıktıktan sonra listeden kaldır
+        setTimeout(() => {
+          setBirds(prevBirds => prevBirds.filter(bird => bird.id !== newBird.id));
+        }, newBird.duration + newBird.delay + 1000);
+
+        return [...prev, newBird];
+      });
+    };
+
+    // İlk 3 martıyı farklı zamanlarda başlat
+    const firstBirdTimer1 = setTimeout(() => addBird(), initialDelay);
+    const firstBirdTimer2 = setTimeout(() => addBird(), initialDelay + 1500);
+    const firstBirdTimer3 = setTimeout(() => addBird(), initialDelay + 3000);
+    
+    // Sonraki martılar için interval (daha sık - 4-6 saniye arası)
+    const birdInterval = setInterval(() => {
+      addBird();
+    }, 4000 + Math.random() * 2000); // 4-6 saniye arası
+
+    return () => {
+      clearTimeout(firstBirdTimer1);
+      clearTimeout(firstBirdTimer2);
+      clearTimeout(firstBirdTimer3);
+      clearInterval(birdInterval);
+    };
+  }, []);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Top Bar - Figma: y=0, height=44 */}
-        <View style={[styles.topBar, { top: insets.top }]}>
-          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-            9:41
-          </Text>
+        {/* Martılar - Maskot'un arkasında */}
+        {birds.map(bird => (
+          <FlyingBird
+            key={bird.id}
+            startX={bird.direction === 'right' ? -50 : screenWidth + 50}
+            endX={bird.direction === 'right' ? screenWidth + 50 : -50}
+            startY={bird.startY}
+            duration={bird.duration}
+            delay={bird.delay}
+            size={bird.size}
+            direction={bird.direction}
+          />
+        ))}
+
+        {/* Speech Bubble - Maskotun üstünde */}
+        <View style={[styles.speechBubbleContainer, { 
+          top: contentTop + 13, 
+          left: (screenWidth - 360) / 2 // Baloncuğu ortala
+        }]}>
+          <SpeechBubble width={360} height={90} />
+          <View style={styles.speechTextContainer}>
+            <Text style={[styles.speechText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+              Merhaba! Benim adım Baran.
+            </Text>
+          </View>
+        </View>
+
+        {/* Character Logo - Full screen width centered */}
+        <View style={[styles.logoContainer, { top: contentTop + 20, width: screenWidth }]}>
+          <SplashMascot size={288} />
         </View>
 
         {/* Main Content - Figma: x=24, calculated top position */}
         <View style={[styles.contentWrapper, { top: contentTop, width: contentWidth, left: (screenWidth - contentWidth) / 2 }]}>
-          {/* Character Container - Figma: Frame x=0, y=0, width=382, height=348 */}
-          <View style={styles.characterContainer}>
-            {/* Speech Bubble - Figma: Group x=91, y=13, width=200, height=64 */}
-            <View style={styles.speechBubbleContainer}>
-              <SpeechBubble width={200} height={64} />
-              <View style={styles.speechTextContainer}>
-                <Text style={[styles.speechText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  Hi there! I'm El!
-                </Text>
-              </View>
-            </View>
-            {/* Character Logo - Figma: x=102, y=105, width=200, height=243.46 */}
-            <View style={styles.logoContainer}>
-              <WelcomeLogo width={200} height={243.46} />
-            </View>
-          </View>
-
           {/* Text Container - Figma: x=0, y=388, width=382, height=145 */}
           <View style={styles.textContainer}>
-            <Text style={[styles.appName, { color: '#6949FF', fontFamily: theme.typography.fontFamily.bold }]}>
+            <Text style={[styles.appName, { color: isDarkMode ? '#FFFFFF' : '#000000', fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.welcome.title')}
             </Text>
             <Text 
@@ -84,15 +151,15 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
             size="large"
             fullWidth
             style={[styles.startButton, { 
-              backgroundColor: '#6949FF',
+              backgroundColor: '#0d9cdd', // Maskotun atkısındaki açık mavi tonu
               borderRadius: 100,
-              paddingVertical: 18,
+              paddingVertical: 15, // %15 azaltıldı (18 -> 15)
               paddingHorizontal: 16,
-              shadowColor: '#6949FF',
-              shadowOffset: { width: 4, height: 8 },
-              shadowOpacity: 0.25,
-              shadowRadius: 24,
-              elevation: 8,
+              shadowColor: '#0d9cdd',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
             }]}
           />
           <Button
@@ -104,13 +171,14 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
             size="medium"
             fullWidth
             style={[styles.loginButton, { 
-              backgroundColor: isDarkMode ? theme.colors.background.paper : '#F0EDFF',
-              borderColor: 'transparent',
+              backgroundColor: isDarkMode ? theme.colors.background.paper : '#FFFFFF', // Dark mode'da tema rengi, light mode'da beyaz
+              borderColor: '#0d9cdd', // Maskotun atkısındaki açık mavi border
+              borderWidth: 2,
               borderRadius: 100,
-              paddingVertical: 18,
+              paddingVertical: 15, // %15 azaltıldı (18 -> 15)
               paddingHorizontal: 16,
             }]}
-            textStyle={{ color: theme.colors.primary.main, fontFamily: theme.typography.fontFamily.bold }}
+            textStyle={{ color: '#0d9cdd', fontFamily: theme.typography.fontFamily.bold }}
           />
         </View>
       </SafeAreaView>
@@ -125,61 +193,37 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  topBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 44, // Figma exact: 44px
-    paddingLeft: 23, // Figma: left-[23px]
-    justifyContent: 'center',
-  },
-  timeText: {
-    fontSize: 16, // Figma: text-[16px]
-    fontWeight: '600', // Figma: font-semibold
-    letterSpacing: 0.2, // Figma: tracking-[0.2px]
-    lineHeight: 22.4, // Figma: leading-[1.4]
-  },
   contentWrapper: {
     position: 'absolute',
     height: 533, // Figma exact: 533px
   },
-  characterContainer: {
-    width: 382, // Figma exact: 382px
-    height: 348, // Figma exact: 348px
-    position: 'relative',
-  },
   speechBubbleContainer: {
     position: 'absolute',
-    top: 13, // Figma exact: y=13
-    left: 91, // Figma exact: x=91
-    width: 200, // Figma exact: 200px
-    height: 64, // Figma exact: 64px
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
   speechTextContainer: {
     position: 'absolute',
-    left: 28, // Figma: text x=119 - bubble x=91 = 28px
-    top: 8, // Figma: text y=21 - bubble y=13 = 8px
-    width: 144, // Figma exact: 144px
-    height: 32, // Figma exact: 32px
+    left: 40,
+    top: 16,
+    right: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   speechText: {
-    fontSize: 20, // Figma: text-[20px]
-    fontWeight: '700', // Figma: font-bold
-    lineHeight: 32, // Figma: leading-[1.6] (20 * 1.6)
+    fontSize: 20, // Subtitle ile aynı boyut
+    fontWeight: '700',
+    lineHeight: 32, // Subtitle ile aynı lineHeight
     textAlign: 'center',
   },
   logoContainer: {
     position: 'absolute',
-    top: 105, // Figma exact: y=105
-    left: '50%', // Ortalamak için
-    marginLeft: -100, // Logo width'in yarısı (200/2 = 100)
-    width: 200, // Figma exact: 200px
-    height: 243.46, // Figma exact: 243.46165466308594px
+    left: 0,
+    right: 0,
+    height: 450, // Larger size
+    alignItems: 'center', // Center horizontally
+    justifyContent: 'center',
   },
   textContainer: {
     position: 'absolute',
@@ -216,7 +260,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24, // Figma: px-[24px]
+    paddingHorizontal: 32, // Artırıldı (24 -> 32)
     paddingTop: 24, // Figma: pt-[24px]
     paddingBottom: 36, // Figma: pb-[36px]
     gap: 24, // Figma: gap-[24px]

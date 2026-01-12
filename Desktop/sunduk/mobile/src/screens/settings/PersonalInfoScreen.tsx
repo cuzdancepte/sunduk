@@ -225,8 +225,8 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
                 maximumDate={new Date()}
                 locale="tr-TR"
                 style={styles.datePicker}
-              />
-            </View>
+        />
+      </View>
           </View>
         </Modal>
       ) : (

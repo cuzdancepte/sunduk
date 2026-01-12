@@ -43,13 +43,6 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Top Bar - Figma: y=0, height=44 */}
-        <View style={[styles.topBar, { top: insets.top }]}>
-          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-            9:41
-          </Text>
-        </View>
-
         {/* Main Content Area - Figma: x=24, y=146, width=382, height=547 */}
         <View style={[styles.contentWrapper, { top: insets.top + 44 + contentTop, width: screenWidth - 48 }]}>
           {/* Frame - Figma: height=362px, width=382px */}
@@ -104,21 +97,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  topBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 44, // Figma exact: 44px
-    paddingLeft: 23, // Figma: left-[23px]
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  timeText: {
-    fontSize: 16, // Figma: text-[16px]
-    fontWeight: '600', // Figma: font-semibold
-    letterSpacing: 0.2, // Figma: tracking-[0.2px]
-    lineHeight: 22.4, // Figma: leading-[1.4]
   },
   contentWrapper: {
     position: 'absolute',

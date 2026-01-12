@@ -1,16 +1,26 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
-import Logo from '../../components/Logo';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import SplashMascot from '../../components/SplashMascot';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Splash'>;
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { isDarkMode } = useThemeContext();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  // Welcome ekranındaki ile aynı hesaplama
+  const safeAreaHeight = screenHeight - insets.top;
+  const screenCenter = safeAreaHeight / 2;
+  const contentCenter = screenCenter - 83.5; // Figma: calc(50% - 83.5px)
+  const contentTop = contentCenter - 266.5; // translate-y-[-50%] = content height / 2
+  const contentWidth = Math.min(382, screenWidth - 48); // 24px padding each side
+  const textTop = contentTop + 388; // textContainer top position
 
   useEffect(() => {
     // 2 saniye sonra Welcome ekranına yönlendir
@@ -25,30 +35,20 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Top Bar - Status Bar (44px height) */}
-        <View style={styles.topBar}>
-          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-            9:41
-          </Text>
-          {/* Status bar icons would be handled by system */}
+        {/* Maskot - Welcome ekranındaki ile aynı konum */}
+        <View style={[styles.logoContainer, { top: contentTop + 20, width: screenWidth }]}>
+          <SplashMascot size={288} />
         </View>
 
-        {/* Main Content - Centered */}
-        <View style={styles.content}>
-          {/* Logo - 200x200px, rounded 1000px (fully rounded) */}
-          <View style={styles.logoContainer}>
-            <Logo width={200} height={200} style={styles.logo} />
-          </View>
-
-          {/* App Name - 48px, bold, #212121, 20px gap from logo */}
-          <Text style={[styles.appName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+        {/* App Name - Welcome ekranındaki ile aynı konum, boyut ve renk */}
+        <View style={[styles.appNameContainer, { 
+          top: textTop, 
+          width: contentWidth, 
+          left: (screenWidth - contentWidth) / 2 
+        }]}>
+          <Text style={[styles.appName, { color: isDarkMode ? '#FFFFFF' : '#000000', fontFamily: theme.typography.fontFamily.bold }]}>
             Sunduk
           </Text>
-        </View>
-
-        {/* Loading Spinner - 60x60px, bottom center */}
-        <View style={styles.loadingContainer}>
-          <LoadingSpinner width={60} height={60} />
         </View>
       </SafeAreaView>
     </View>
@@ -62,46 +62,27 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  topBar: {
-    height: 44, // Figma exact: 44px
-    paddingHorizontal: 23, // Figma: left-[23px]
-    justifyContent: 'center',
-  },
-  timeText: {
-    fontSize: 16, // Figma: text-[16px]
-    fontWeight: '600', // Figma: font-semibold
-    letterSpacing: 0.2, // Figma: tracking-[0.2px]
-    lineHeight: 22.4, // Figma: leading-[1.4]
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 20, // Figma: gap-[20px] between logo and text
-  },
   logoContainer: {
-    width: 200, // Figma exact: 200px
-    height: 200, // Figma exact: 200px
-    alignItems: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 450, // Welcome ekranı ile aynı
+    alignItems: 'center', // Center horizontally
     justifyContent: 'center',
   },
-  logo: {
-    width: 200, // Figma exact: 200px
-    height: 200, // Figma exact: 200px
+  appNameContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   appName: {
-    fontSize: 48, // Figma: text-[48px]
-    fontWeight: '700', // Figma: font-bold
-    lineHeight: 76.8, // Figma: leading-[1.6] (48 * 1.6)
+    fontSize: 48, // Welcome ekranı ile aynı
+    fontWeight: '700', // Welcome ekranı ile aynı
+    lineHeight: 76.8, // Welcome ekranı ile aynı
+    letterSpacing: 0, // Welcome ekranı ile aynı
     textAlign: 'center',
-  },
-  loadingContainer: {
-    width: 60, // Figma exact: 60px
-    height: 60, // Figma exact: 60px
-    alignSelf: 'center',
-    marginBottom: 40, // Approximate bottom spacing
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%', // Welcome ekranı ile aynı
+    height: 77, // Welcome ekranı ile aynı
   },
 });
 

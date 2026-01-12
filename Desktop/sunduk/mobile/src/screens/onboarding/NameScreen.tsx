@@ -7,6 +7,7 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackButton from '../../components/BackButton';
 import HideIcon from '../../components/HideIcon';
+import ShowIcon from '../../components/ShowIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI } from '../../services/api';
 
@@ -31,13 +32,6 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Top Bar - Figma: y=0, height=44 */}
-        <View style={[styles.topBar, { top: insets.top }]}>
-          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-            9:41
-          </Text>
-        </View>
-
         {/* Main Content Area - Figma: x=24, y=44, width=382, height=888 */}
         <ScrollView
           style={styles.scrollView}
@@ -51,7 +45,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.progressBarSection}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              style={[styles.backButton, { marginHorizontal: 24 }]}
+              style={styles.backButton}
               activeOpacity={0.7}
             >
               <BackButton width={28} height={28} color={theme.colors.text.primary} />
@@ -60,12 +54,12 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
               <ProgressBar
                 progress={progress * 100}
                 height={12}
-                color="#6949FF"
+                color="#0d9cdd"
                 backgroundColor="#EEEEEE"
                 style={styles.progressBar}
               />
             </View>
-            <View style={[styles.rightSpacer, { marginHorizontal: 24 }]} />
+            <View style={styles.rightSpacer} />
           </View>
 
           {/* Content Section - Figma: gap=32px */}
@@ -138,7 +132,11 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
                     style={styles.eyeIconContainer}
                     activeOpacity={0.7}
                   >
-                    <HideIcon width={28} height={28} color="#6949FF" />
+                    {showPassword ? (
+                      <ShowIcon width={28} height={28} color="#0d9cdd" />
+                    ) : (
+                      <HideIcon width={28} height={28} color="#0d9cdd" />
+                    )}
                   </TouchableOpacity>
                 </View>
                 <View style={styles.inputUnderline} />
@@ -205,24 +203,8 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  topBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 44, // Figma exact: 44px
-    paddingLeft: 23, // Figma: left-[23px]
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  timeText: {
-    fontSize: 16, // Figma: text-[16px]
-    fontWeight: '600', // Figma: font-semibold
-    letterSpacing: 0.2, // Figma: tracking-[0.2px]
-    lineHeight: 22.4, // Figma: leading-[1.4]
-  },
   scrollView: {
     flex: 1,
-    marginTop: 44, // Top bar height
   },
   scrollContent: {
     paddingTop: 16, // Figma: pt-[16px]
@@ -231,11 +213,12 @@ const styles = StyleSheet.create({
   progressBarSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     height: 48, // Figma exact: 48px
     paddingVertical: 12, // Figma: py-[12px]
     gap: 16, // Figma: gap-[16px]
-    paddingHorizontal: 0, // Removed, handled by marginHorizontal on children
+    marginLeft: -24, // ScrollView padding'ini telafi et
+    paddingLeft: 24, // Back button için padding
   },
   backButton: {
     width: 28, // Figma: size-[28px]
@@ -305,7 +288,7 @@ const styles = StyleSheet.create({
   },
   inputUnderline: {
     height: 1, // Figma: h-px
-    backgroundColor: '#6949FF', // Figma: bg-[#6949ff]
+    backgroundColor: '#0d9cdd', // Welcome ekranı ile aynı renk
     borderRadius: 100, // Figma: rounded-[100px]
     width: '100%',
   },
@@ -314,21 +297,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24, // Figma: px-[24px]
+    paddingHorizontal: 32, // Welcome ekranı ile aynı (24 -> 32)
     paddingTop: 24, // Figma: pt-[24px]
     paddingBottom: 36, // Figma: pb-[36px]
     borderTopWidth: 1,
   },
   continueButton: {
-    backgroundColor: '#6949FF',
+    backgroundColor: '#0d9cdd', // Welcome ekranı ile aynı renk
     borderRadius: 100, // Figma: rounded-[100px]
-    paddingVertical: 18, // Figma: py-[18px]
+    paddingVertical: 15, // Welcome ekranı ile aynı (18 -> 15)
     paddingHorizontal: 16, // Figma: px-[16px]
-    shadowColor: '#6949FF',
-    shadowOffset: { width: 4, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowColor: '#0d9cdd',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
 

@@ -88,9 +88,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           >
             <BackButton width={28} height={28} color={theme.colors.text.primary} />
           </TouchableOpacity>
-          <Text style={[styles.timeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-            9:41
-          </Text>
         </View>
 
         <ScrollView
@@ -222,13 +219,6 @@ const styles = StyleSheet.create({
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
-  },
-  timeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-    lineHeight: 22.4,
   },
   scrollContent: {
     flexGrow: 1,
