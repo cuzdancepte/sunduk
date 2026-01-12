@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, useWindowDimensions, Animated, Easing } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { useTheme, useThemeContext } from '../../theme/useTheme';
@@ -9,6 +9,7 @@ import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SplashMascot from '../../components/SplashMascot';
 import SpeechBubble from '../../components/SpeechBubble';
+import Confetti from '../../components/Confetti';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken } from '../../services/api';
 
@@ -21,6 +22,9 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { setAuthenticated } = useAuth();
+  
+  // Zıplama animasyonu için animated value
+  const bounceAnim = useRef(new Animated.Value(0)).current;
 
   const handleContinue = async () => {
     // Onboarding'i tamamlandı olarak işaretle
@@ -39,10 +43,39 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
   // Center vertically: calc(50% - 46.5px) from top
   const contentTop = (screenHeight - insets.top - insets.bottom - 547) / 2 - 46.5;
 
+  // Zıplama animasyonu
+  useEffect(() => {
+    const bounceAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: -30, // Yukarı zıpla
+          duration: 400,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0, // Aşağı in
+          duration: 400,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.delay(200), // Kısa bekleme
+      ])
+    );
+    
+    bounceAnimation.start();
+    
+    return () => {
+      bounceAnimation.stop();
+    };
+  }, [bounceAnim]);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Konfeti efekti - ekran açılır açılmaz */}
+        <Confetti count={60} />
         {/* Speech Bubble - Maskotun üstünde, WelcomeScreen gibi */}
         <View style={[styles.speechBubbleContainer, { 
           top: contentTop + 13, 
@@ -60,10 +93,17 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
         <View style={[styles.contentWrapper, { top: insets.top + 44 + contentTop, width: screenWidth - 48 }]}>
           {/* Frame - Figma: height=362px, width=382px */}
           <View style={[styles.frameContainer, { width: Math.min(382, screenWidth - 48) }]}>
-            {/* Character - Centered mascot */}
-            <View style={styles.characterContainer}>
+            {/* Character - Centered mascot with bounce animation */}
+            <Animated.View 
+              style={[
+                styles.characterContainer,
+                {
+                  transform: [{ translateY: bounceAnim }],
+                }
+              ]}
+            >
               <SplashMascot size={288} />
-            </View>
+            </Animated.View>
           </View>
 
           {/* Text Section - Figma: y=402, gap=4px */}
