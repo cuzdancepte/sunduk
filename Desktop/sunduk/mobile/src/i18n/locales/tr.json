@@ -32,8 +32,9 @@
       "continue": "Continue"
     },
     "success": {
-      "title": "Welcome 👋",
-      "subtitle": "Your profile has been created successfully.",
+      "hurray": "Harika, hazırsın!",
+      "title": "İşte bu kadar!",
+      "subtitle": "Yeni dil maceran şimdi başlıyor.",
       "continueToHome": "CONTINUE TO HOME"
     }
   },

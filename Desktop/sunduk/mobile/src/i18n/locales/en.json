@@ -32,8 +32,9 @@
       "continue": "Continue"
     },
     "success": {
-      "title": "Welcome 👋",
-      "subtitle": "Your profile has been created successfully.",
+      "hurray": "Bravo! You are ready!",
+      "title": "There we go!",
+      "subtitle": "Your language learning journey begins now.",
       "continueToHome": "CONTINUE TO HOME"
     }
   },
