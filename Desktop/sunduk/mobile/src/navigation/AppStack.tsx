@@ -118,12 +118,12 @@ const AppStack = () => {
       <Stack.Screen
         name="ChooseSubscriptionPlan"
         component={ChooseSubscriptionPlanScreen}
-        options={{ title: 'Abonelik Planı' }}
+        options={{ title: 'Abonelik Planı', headerShown: false }}
       />
       <Stack.Screen
         name="SelectPaymentMethod"
         component={SelectPaymentMethodScreen}
-        options={{ title: 'Ödeme Yöntemi' }}
+        options={{ title: 'Ödeme Yöntemi', headerShown: false }}
       />
       <Stack.Screen
         name="SubscriptionSuccess"

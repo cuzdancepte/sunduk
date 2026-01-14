@@ -16,9 +16,25 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
 const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { isDarkMode } = useThemeContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+
+  // Ekran açıldığında seçilen dili yükle
+  useEffect(() => {
+    const loadSelectedLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('onboarding_appLanguageId');
+        if (savedLanguage && ['tr', 'en', 'ru'].includes(savedLanguage) && i18n.language !== savedLanguage) {
+          await i18n.changeLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error loading language:', error);
+      }
+    };
+    loadSelectedLanguage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Figma: content top = calc(50% - 83.5px) with translate-y-[-50%]
   // Content center = screen center - 83.5px
@@ -114,17 +130,17 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
           left: (screenWidth - 360) / 2 // Baloncuğu ortala
         }]}>
           <SpeechBubble width={360} height={90} />
-          <View style={styles.speechTextContainer}>
+              <View style={styles.speechTextContainer}>
             <Text style={[styles.speechText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               Merhaba! Benim adım Baran.
-            </Text>
-          </View>
-        </View>
+                </Text>
+              </View>
+            </View>
 
         {/* Character Logo - Full screen width centered */}
         <View style={[styles.logoContainer, { top: contentTop + 20, width: screenWidth }]}>
           <SplashMascot size={288} />
-        </View>
+          </View>
 
         {/* Main Content - Figma: x=24, calculated top position */}
         <View style={[styles.contentWrapper, { top: contentTop, width: contentWidth, left: (screenWidth - contentWidth) / 2 }]}>

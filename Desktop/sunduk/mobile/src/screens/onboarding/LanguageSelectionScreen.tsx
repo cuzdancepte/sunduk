@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, useWindowDimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,21 +10,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SplashMascot from '../../components/SplashMascot';
 import Bubble1 from '../../components/Bubble1';
 import BackButton from '../../components/BackButton';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'LanguageSelection'>;
 
-// Native & App Language seçenekleri
-const nativeLanguages = [
-  { code: 'id', name: 'Indonesia', flag: '🇮🇩' },
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'ru', name: 'Russian', flag: '🇷🇺' },
-  { code: 'tr', name: 'Turkish', flag: '🇹🇷' },
-  { code: 'zh', name: 'Mandarin', flag: '🇨🇳' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-];
-
+// App Language seçenekleri
 const appLanguages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'ru', name: 'Russian', flag: '🇷🇺' },
@@ -34,19 +24,24 @@ const appLanguages = [
 const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { isDarkMode } = useThemeContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { changeLanguage } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const [selectedAppLanguage, setSelectedAppLanguage] = useState<string>('en');
-  const [nativeLanguage, setNativeLanguage] = useState<string>('id'); // Default: Indonesia
-  const [showNativeOptions, setShowNativeOptions] = useState(false);
+  const [selectedAppLanguage, setSelectedAppLanguage] = useState<string>(i18n.language || 'en');
+
+  // i18n dil değişikliklerini dinle
+  useEffect(() => {
+    setSelectedAppLanguage(i18n.language || 'en');
+  }, [i18n.language]);
 
   // Progress: 3. ekran, toplam 7 ekran (1:Splash, 2:Welcome, 3:Language, 11:Name, 13:Email, 14:Password, 15:Success)
   // Progress bar: 3/7 = %42.86, width: ~92px / 216px
   const progress = 92 / 216; // Yaklaşık %42.86
 
   // Speech bubble responsive width: ekrana göre ayarla
-  const speechBubbleWidth = Math.min(242, screenWidth - 180 - 48); // 180 (character) + 48 (padding)
+  const speechBubbleWidth = Math.min(360, screenWidth - 180 - 24); // 180 (character) + 24 (padding) - daha geniş balon
+  const speechBubbleHeight = 140; // Yükseklik artırıldı (116 -> 140)
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
@@ -91,11 +86,11 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </View>
             {/* Speech Bubble Group - Figma: x=140, y=12, width=242, height=116 */}
-            <View style={[styles.speechBubbleGroup, { width: speechBubbleWidth }]}>
-              <Bubble1 width={speechBubbleWidth} height={116} />
+            <View style={[styles.speechBubbleGroup, { width: speechBubbleWidth, height: speechBubbleHeight }]}>
+              <Bubble1 width={speechBubbleWidth} height={speechBubbleHeight} />
               <View style={styles.speechTextContainer}>
                 <Text style={[styles.speechText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  What language do you want to use for Sunduk?
+                  {t('onboarding.languageSelection.mascotSpeech')}
                 </Text>
               </View>
             </View>
@@ -106,89 +101,6 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Language Selection Section - Figma: y=204, gap=20px */}
           <View style={styles.languageSection}>
-            {/* Your Native Language */}
-            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-              {t('onboarding.languageSelection.title')}
-            </Text>
-            {(() => {
-              const currentNative =
-                nativeLanguages.find(lang => lang.code === nativeLanguage) ??
-                nativeLanguages[0];
-
-              return (
-                <>
-                  <TouchableOpacity
-                    style={styles.selectedLanguageCard}
-                    activeOpacity={0.8}
-                    onPress={() => setShowNativeOptions(prev => !prev)}
-                  >
-                    <Text style={styles.flag}>{currentNative.flag}</Text>
-                    <Text
-                      style={[
-                        styles.languageName,
-                        {
-                          color: theme.colors.text.primary,
-                          fontFamily: theme.typography.fontFamily.bold,
-                        },
-                      ]}
-                    >
-                      {currentNative.name}
-                    </Text>
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => setShowNativeOptions(prev => !prev)}
-                    >
-                      <Text
-                        style={[
-                          styles.changeButton,
-                          {
-                            color: '#0d9cdd',
-                            fontFamily: theme.typography.fontFamily.bold,
-                          },
-                        ]}
-                      >
-                        Change
-                      </Text>
-                    </TouchableOpacity>
-                  </TouchableOpacity>
-
-                  {showNativeOptions && (
-                    <View style={styles.nativeOptionsContainer}>
-                      {nativeLanguages
-                        .filter(lang => lang.code !== nativeLanguage)
-                        .map(lang => (
-                          <TouchableOpacity
-                            key={lang.code}
-                            onPress={() => {
-                              setNativeLanguage(lang.code);
-                              setShowNativeOptions(false);
-                            }}
-                            activeOpacity={0.7}
-                            style={[styles.languageCard, styles.unselectedCard, { 
-                              backgroundColor: theme.colors.background.paper,
-                              borderColor: theme.colors.border.light,
-                            }]}
-                          >
-                            <Text style={styles.flag}>{lang.flag}</Text>
-                            <Text
-                              style={[
-                                styles.languageName,
-                                {
-                                  color: theme.colors.text.primary,
-                                  fontFamily: theme.typography.fontFamily.bold,
-                                },
-                              ]}
-                            >
-                              {lang.name}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                    </View>
-                  )}
-                </>
-              );
-            })()}
-
             {/* App Language */}
             <Text style={[styles.sectionTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.languageSelection.appLanguage')}
@@ -196,15 +108,18 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
             {appLanguages.map((lang) => (
               <TouchableOpacity
                 key={lang.code}
-                onPress={() => setSelectedAppLanguage(lang.code)}
+                onPress={async () => {
+                  setSelectedAppLanguage(lang.code);
+                  await changeLanguage(lang.code);
+                }}
                 activeOpacity={0.7}
-            style={[
-              styles.languageCard,
+                style={[
+                  styles.languageCard,
               selectedAppLanguage === lang.code ? styles.selectedCard : [styles.unselectedCard, { 
                 backgroundColor: theme.colors.background.paper,
                 borderColor: theme.colors.border.light,
               }],
-            ]}
+                ]}
               >
                 <Text style={styles.flag}>{lang.flag}</Text>
                 <Text style={[styles.languageName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
@@ -220,8 +135,8 @@ const LanguageSelectionScreen: React.FC<Props> = ({ navigation }) => {
           <Button
             title={t('onboarding.languageSelection.continue')}
             onPress={async () => {
-              await AsyncStorage.setItem('onboarding_nativeLanguageId', nativeLanguage);
               await AsyncStorage.setItem('onboarding_appLanguageId', selectedAppLanguage);
+              // Dil zaten changeLanguage ile değiştirilmiş, sadece navigate ediyoruz
               navigation.navigate('Name');
             }}
             variant="primary"
@@ -302,16 +217,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 180, // Maskot büyüdüğü için güncellendi (140 -> 180)
     top: 12, // Figma: y=12
-    height: 116, // Figma exact: 116px
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   speechTextContainer: {
     position: 'absolute',
-    left: 20, // Sola kaydırıldı - daha iyi görünüm için
-    top: 10, // Figma: y=22 - bubble y=12 = 10px
-    right: 20, // Sağdan da padding
+    left: 24, // Metin ile balon kenarı arasında boşluk
+    top: 20, // Üstten boşluk
+    right: 24, // Sağdan boşluk
+    bottom: 20, // Alttan boşluk
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -335,19 +250,6 @@ const styles = StyleSheet.create({
     lineHeight: 38.4, // Figma: leading-[1.6] (24 * 1.6)
     letterSpacing: 0,
     marginBottom: 0,
-  },
-  selectedLanguageCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(13, 156, 221, 0.08)', // #0d9cdd with 0.08 opacity
-    borderWidth: 4, // Figma: border-4
-    borderColor: '#0d9cdd', // Welcome ekranı ile aynı renk
-    borderRadius: 24, // Figma: rounded-[24px]
-    paddingHorizontal: 20, // Figma: px-[20px]
-    paddingVertical: 12, // Figma: py-[12px]
-    gap: 24, // Figma: gap-[24px]
-    height: 84, // Figma exact: 84px
-    marginTop: 20, // Gap between title and card
   },
   languageCard: {
     flexDirection: 'row',
@@ -379,17 +281,6 @@ const styles = StyleSheet.create({
     fontWeight: '700', // Figma: font-bold
     lineHeight: 38.4, // Figma: leading-[1.6] (24 * 1.6)
     letterSpacing: 0,
-  },
-  changeButton: {
-    fontSize: 18, // Figma: text-[18px]
-    fontWeight: '700', // Figma: font-bold
-    lineHeight: 28.8, // Figma: leading-[1.6] (18 * 1.6)
-    letterSpacing: 0,
-    textAlign: 'right',
-  },
-  nativeOptionsContainer: {
-    marginTop: 12,
-    gap: 12,
   },
   buttonContainer: {
     position: 'absolute',

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, SafeAreaView, StatusBar, useWindowDimensions, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { useTheme, useThemeContext } from '../../theme/useTheme';
 import { Button, ProgressBar } from '../../components/ui';
 import { OnboardingStackParamList } from '../../navigation/OnboardingStack';
@@ -10,12 +11,15 @@ import HideIcon from '../../components/HideIcon';
 import ShowIcon from '../../components/ShowIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI } from '../../services/api';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Name'>;
 
 const NameScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { isDarkMode } = useThemeContext();
+  const { t, i18n } = useTranslation();
+  const { changeLanguage } = useLanguage();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [name, setName] = useState('');
@@ -23,6 +27,22 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Ekran açıldığında seçilen dili yükle
+  useEffect(() => {
+    const loadSelectedLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('onboarding_appLanguageId');
+        if (savedLanguage && ['tr', 'en', 'ru'].includes(savedLanguage) && i18n.language !== savedLanguage) {
+          await i18n.changeLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error loading language:', error);
+      }
+    };
+    loadSelectedLanguage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Progress: 4. ekran, toplam 5 ekran (Splash, Welcome, Language, Name, Success) = %80
   // Progress bar: 4/5 = %80, width: ~173px / 216px
@@ -67,19 +87,19 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
             {/* Title */}
             <View style={styles.titleContainer}>
               <Text style={[styles.title, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                Create your account
+                {t('onboarding.name.title')}
               </Text>
             </View>
 
             {/* Full Name Input Section - Figma: gap=16px */}
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                Full Name
+                {t('onboarding.name.fullName')}
               </Text>
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
-                  placeholder="Enter your full name"
+                  placeholder={t('onboarding.name.fullNamePlaceholder')}
                   placeholderTextColor={theme.colors.text.secondary}
                   value={name}
                   onChangeText={setName}
@@ -93,12 +113,12 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
             {/* Email Input Section - Figma: gap=16px */}
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                Email
+                {t('onboarding.name.email')}
               </Text>
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
-                  placeholder="Enter your email address"
+                  placeholder={t('onboarding.name.emailPlaceholder')}
                   placeholderTextColor={theme.colors.text.secondary}
                   value={email}
                   onChangeText={setEmail}
@@ -113,13 +133,13 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
             {/* Password Input Section - Figma: gap=16px */}
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                Password
+                {t('onboarding.name.password')}
               </Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.passwordInputContainer}>
                   <TextInput
                     style={[styles.input, styles.passwordInput, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
-                    placeholder="Enter your password"
+                    placeholder={t('onboarding.name.passwordPlaceholder')}
                     placeholderTextColor={theme.colors.text.secondary}
                     value={password}
                     onChangeText={setPassword}
@@ -148,7 +168,7 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
         {/* Bottom Button - Figma: absolute bottom, height=118 */}
         <View style={[styles.buttonContainer, { backgroundColor: theme.colors.background.paper, borderTopColor: theme.colors.border.light }]}>
           <Button
-            title="Continue"
+            title={t('onboarding.name.continue')}
             onPress={async () => {
               if (!name.trim() || !email.trim() || !password.trim()) {
                 return;
@@ -178,8 +198,8 @@ const NameScreen: React.FC<Props> = ({ navigation }) => {
                 navigation.navigate('Success');
               } catch (error: any) {
                 console.error('Register error:', error);
-                const errorMessage = error.response?.data?.error || error.message || 'Kayıt yapılamadı. Lütfen tekrar deneyin.';
-                Alert.alert('Kayıt Hatası', errorMessage);
+                const errorMessage = error.response?.data?.error || error.message || t('onboarding.name.registerErrorMessage');
+                Alert.alert(t('onboarding.name.registerError'), errorMessage);
               } finally {
                 setLoading(false);
               }

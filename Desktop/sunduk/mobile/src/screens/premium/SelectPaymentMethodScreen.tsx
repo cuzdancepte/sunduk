@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { Button, Card, Input } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
+import BackButton from '../../components/BackButton';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SelectPaymentMethod'>;
 
@@ -24,6 +26,7 @@ interface PaymentMethod {
 
 const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { planId } = route.params;
   const [selectedMethod, setSelectedMethod] = useState<string>('card');
   const [cardNumber, setCardNumber] = useState('');
@@ -32,7 +35,7 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
   const [cvv, setCvv] = useState('');
 
   const paymentMethods: PaymentMethod[] = [
-    { id: 'card', name: 'Kredi/Banka Kartı', icon: '💳', type: 'card' },
+    { id: 'card', name: t('payment.creditCard'), icon: '💳', type: 'card' },
     { id: 'apple', name: 'Apple Pay', icon: '🍎', type: 'apple' },
     { id: 'google', name: 'Google Pay', icon: '📱', type: 'google' },
   ];
@@ -63,17 +66,17 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+          <BackButton width={28} height={28} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-          Ödeme Yöntemi
+          {t('payment.title')}
         </Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.subtitle, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-          Ödeme yöntemini seç
+          {t('payment.selectMethod')}
         </Text>
 
         {/* Payment Methods */}
@@ -89,11 +92,8 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
                 padding="medium"
                 style={[
                   styles.methodCard,
-                  selectedMethod === method.id && {
-                    borderColor: theme.colors.primary.main,
-                    borderWidth: 2,
-                    backgroundColor: `${theme.colors.primary.main}10`,
-                  },
+                  { backgroundColor: theme.colors.background.paper },
+                  selectedMethod === method.id && styles.methodCardSelected,
                 ]}
               >
                 <View style={styles.methodContent}>
@@ -102,7 +102,7 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
                     {method.name}
                   </Text>
                   {selectedMethod === method.id && (
-                    <Ionicons name="checkmark-circle" size={24} color={theme.colors.primary.main} />
+                    <Ionicons name="checkmark-circle" size={24} color="#0d9cdd" />
                   )}
                 </View>
               </Card>
@@ -112,13 +112,13 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
 
         {/* Card Details Form */}
         {selectedMethod === 'card' && (
-          <Card variant="default" padding="large" style={styles.cardForm}>
+          <Card variant="default" padding="large" style={[styles.cardForm, { backgroundColor: theme.colors.background.paper }]}>
             <Text style={[styles.formTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-              Kart Bilgileri
+              {t('payment.cardDetails')}
             </Text>
 
             <Input
-              label="Kart Numarası"
+              label={t('payment.cardNumber')}
               placeholder="1234 5678 9012 3456"
               value={cardNumber}
               onChangeText={(text) => setCardNumber(formatCardNumber(text))}
@@ -128,8 +128,8 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
             />
 
             <Input
-              label="Kart Sahibi"
-              placeholder="Ad Soyad"
+              label={t('payment.cardHolder')}
+              placeholder={t('payment.cardHolderPlaceholder')}
               value={cardHolder}
               onChangeText={setCardHolder}
               autoCapitalize="words"
@@ -138,7 +138,7 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
 
             <View style={styles.rowInputs}>
               <Input
-                label="Son Kullanma"
+                label={t('payment.expiryDate')}
                 placeholder="MM/YY"
                 value={expiryDate}
                 onChangeText={(text) => setExpiryDate(formatExpiryDate(text))}
@@ -161,21 +161,21 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
         )}
 
         {/* Summary */}
-        <Card variant="default" padding="medium" style={styles.summaryCard}>
+        <Card variant="default" padding="medium" style={[styles.summaryCard, { backgroundColor: theme.colors.background.paper }]}>
           <Text style={[styles.summaryTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-            Özet
+            {t('payment.summary')}
           </Text>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Plan
+              {t('payment.plan')}
             </Text>
             <Text style={[styles.summaryValue, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-              {planId === 'monthly' ? 'Aylık Plan' : 'Yıllık Plan'}
+              {planId === 'monthly' ? t('premium.monthly') : t('premium.yearly')}
             </Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Tutar
+              {t('payment.amount')}
             </Text>
             <Text style={[styles.summaryValue, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               ₺{planId === 'monthly' ? '99' : '799'}
@@ -184,13 +184,14 @@ const SelectPaymentMethodScreen: React.FC<Props> = ({ route, navigation }) => {
         </Card>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
+      <View style={[styles.buttonContainer, { backgroundColor: theme.colors.background.default }]}>
         <Button
-          title="Ödemeyi Tamamla"
+          title={t('payment.complete')}
           onPress={handlePayment}
           variant="primary"
           size="large"
           fullWidth
+          style={styles.payButton}
           disabled={selectedMethod === 'card' && (!cardNumber || !cardHolder || !expiryDate || !cvv)}
         />
       </View>
@@ -206,26 +207,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
   },
   placeholder: {
-    width: 40,
+    width: 28,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   subtitle: {
     fontSize: 16,
@@ -238,6 +239,11 @@ const styles = StyleSheet.create({
   },
   methodCard: {
     marginBottom: 0,
+  },
+  methodCardSelected: {
+    borderColor: '#0d9cdd',
+    borderWidth: 2,
+    backgroundColor: 'rgba(13, 156, 221, 0.08)',
   },
   methodContent: {
     flexDirection: 'row',
@@ -296,9 +302,11 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+  },
+  payButton: {
+    backgroundColor: '#0d9cdd',
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { authAPI } from '../../services/api';
@@ -21,12 +22,14 @@ import { Button, Checkbox } from '../../components/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackButton from '../../components/BackButton';
 import HideIcon from '../../components/HideIcon';
+import ShowIcon from '../../components/ShowIcon';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { isDarkMode } = useThemeContext();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [email, setEmail] = useState('');
@@ -36,9 +39,25 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const { setAuthenticated } = useAuth();
 
+  // Ekran açıldığında seçilen dili yükle
+  useEffect(() => {
+    const loadSelectedLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('onboarding_appLanguageId');
+        if (savedLanguage && ['tr', 'en', 'ru'].includes(savedLanguage) && i18n.language !== savedLanguage) {
+          await i18n.changeLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error loading language:', error);
+      }
+    };
+    loadSelectedLanguage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('auth.login.error'), t('auth.login.errorMessage'));
       return;
     }
 
@@ -54,7 +73,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       setAuthenticated(true);
       // Navigation will be handled by AppNavigator based on auth state
     } catch (error: any) {
-      Alert.alert('Login Error', error.response?.data?.error || 'Login failed');
+      Alert.alert(t('auth.login.loginError'), error.response?.data?.error || t('auth.login.loginErrorMessage'));
     } finally {
       setLoading(false);
     }
@@ -95,10 +114,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header/Greeting - Figma: "Hello there 👋" */}
+          {/* Header/Greeting */}
           <View style={styles.headerSection}>
             <Text style={[styles.greetingText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-              Hello there 👋
+              {t('auth.login.greeting')}
             </Text>
           </View>
 
@@ -107,12 +126,12 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             {/* Email Input */}
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                Email
+                {t('auth.login.email')}
               </Text>
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
-                  placeholder="andrew.ainsley@yourdomain.com"
+                  placeholder={t('auth.login.emailPlaceholder')}
                   placeholderTextColor={theme.colors.text.secondary}
                   value={email}
                   onChangeText={setEmail}
@@ -127,13 +146,13 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             {/* Password Input */}
             <View style={styles.inputSection}>
               <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                Password
+                {t('auth.login.password')}
               </Text>
               <View style={styles.inputWrapper}>
                 <View style={styles.passwordInputContainer}>
                   <TextInput
                     style={[styles.input, styles.passwordInput, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
-                    placeholder="Enter your password"
+                    placeholder={t('auth.login.passwordPlaceholder')}
                     placeholderTextColor={theme.colors.text.secondary}
                     value={password}
                     onChangeText={setPassword}
@@ -146,7 +165,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     style={styles.eyeIconContainer}
                     activeOpacity={0.7}
                   >
-                    <HideIcon width={28} height={28} color="#6949FF" />
+                    {showPassword ? (
+                      <ShowIcon width={28} height={28} color="#0d9cdd" />
+                    ) : (
+                      <HideIcon width={28} height={28} color="#0d9cdd" />
+                    )}
                   </TouchableOpacity>
                 </View>
                 <View style={styles.inputUnderline} />
@@ -160,10 +183,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                   checked={rememberMe}
                   onPress={() => setRememberMe(!rememberMe)}
                   size={24}
-                  color="#6949FF"
+                  color="#0d9cdd"
                 />
                 <Text style={[styles.rememberMeText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  Remember me
+                  {t('auth.login.rememberMe')}
                 </Text>
               </View>
 
@@ -171,8 +194,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 onPress={() => navigation.navigate('ForgotPassword')}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.forgotPasswordText, { color: '#6949FF', fontFamily: theme.typography.fontFamily.bold }]}>
-                  Forgot Password?
+                <Text style={[styles.forgotPasswordText, { color: '#0d9cdd', fontFamily: theme.typography.fontFamily.bold }]}>
+                  {t('auth.login.forgotPassword')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -180,7 +203,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             {/* Sign In Button */}
             <View style={styles.buttonContainer}>
               <Button
-                title="SIGN IN"
+                title={t('auth.login.signIn')}
                 onPress={handleLogin}
                 variant="primary"
                 size="large"
@@ -276,7 +299,7 @@ const styles = StyleSheet.create({
   },
   inputUnderline: {
     height: 1,
-    backgroundColor: '#6949FF',
+    backgroundColor: '#0d9cdd',
     borderRadius: 100,
     width: '100%',
   },
@@ -308,15 +331,15 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   signInButton: {
-    backgroundColor: '#6949FF',
+    backgroundColor: '#0d9cdd',
     borderRadius: 100,
-    paddingVertical: 18,
+    paddingVertical: 15,
     paddingHorizontal: 16,
-    shadowColor: '#6949FF',
-    shadowOffset: { width: 4, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowColor: '#0d9cdd',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
 

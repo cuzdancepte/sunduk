@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../theme/useTheme';
 import { AppStackParamList } from '../../navigation/AppStack';
+import BackButton from '../../components/BackButton';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'LanguageSettings'>;
 
@@ -43,11 +44,7 @@ const LanguageSettingsScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back-outline"
-            size={24}
-            color={theme.colors.text.primary}
-          />
+          <BackButton width={28} height={28} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text
           style={[
@@ -90,9 +87,10 @@ const LanguageSettingsScreen: React.FC<Props> = ({ navigation }) => {
                 activeOpacity={0.7}
                 style={[
                   styles.languageItem,
+                  { backgroundColor: theme.colors.background.paper },
                   isSelected && {
-                    backgroundColor: theme.colors.primary.light + '20',
-                    borderColor: theme.colors.primary.main,
+                    backgroundColor: 'rgba(13, 156, 221, 0.08)',
+                    borderColor: '#0d9cdd',
                     borderWidth: 2,
                   },
                 ]}
@@ -115,7 +113,7 @@ const LanguageSettingsScreen: React.FC<Props> = ({ navigation }) => {
                   <Ionicons
                     name="checkmark-circle"
                     size={24}
-                    color={theme.colors.primary.main}
+                    color="#0d9cdd"
                   />
                 )}
               </TouchableOpacity>
@@ -136,21 +134,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: 20,
     paddingBottom: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   headerPlaceholder: {
-    width: 40,
+    width: 28,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -169,8 +167,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: 'transparent',
   },

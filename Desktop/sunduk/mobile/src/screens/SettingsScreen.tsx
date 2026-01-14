@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme, useThemeContext } from '../theme/useTheme';
 import { AppStackParamList } from '../navigation/AppStack';
+import BackButton from '../components/BackButton';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Settings'>;
 
@@ -65,22 +66,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       screen: 'LanguageSettings',
     },
     {
-      id: 'accessibility',
-      title: t('settings.accessibility'),
-      icon: 'accessibility-outline',
-      iconColor: '#FF9800',
-      iconBgColor: '#FFF3E0',
-      screen: 'AccessibilitySettings',
-    },
-    {
-      id: 'security',
-      title: t('settings.security'),
-      icon: 'shield-checkmark-outline',
-      iconColor: '#4CAF50',
-      iconBgColor: '#E8F5E9',
-      screen: 'SecuritySettings',
-    },
-    {
       id: 'invite-friend',
       title: t('settings.inviteFriend'),
       icon: 'person-add-outline',
@@ -106,7 +91,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     },
     {
       id: 'about',
-      title: t('settings.aboutElingo'),
+      title: t('settings.aboutSunduk'),
       icon: 'information-circle-outline',
       iconColor: '#9C27B0',
       iconBgColor: '#F3E5F5',
@@ -147,11 +132,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back-outline"
-            size={24}
-            color={theme.colors.text.primary}
-          />
+          <BackButton width={28} height={28} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text
           style={[
@@ -204,8 +185,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                   value={isDarkMode}
                   onValueChange={toggleDarkMode}
                   trackColor={{
-                    false: '#EEEEEE',
-                    true: theme.colors.primary.main,
+                    false: '#E0E0E0',
+                    true: '#0d9cdd',
                   }}
                   thumbColor="#FFFFFF"
                 />
@@ -229,21 +210,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: 20,
     paddingBottom: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   headerPlaceholder: {
-    width: 40,
+    width: 28,
   },
   scrollContent: {
     paddingHorizontal: 24,

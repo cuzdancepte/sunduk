@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { Button, Card } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
@@ -17,15 +18,14 @@ type Props = NativeStackScreenProps<AppStackParamList, 'Premium'>;
 
 const PremiumScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
-  const [selectedVersion, setSelectedVersion] = useState<1 | 2>(1);
+  const { t } = useTranslation();
 
   const features = [
-    { icon: '🚫', title: 'Reklamsız Deneyim', description: 'Hiç reklam görmeden öğren' },
-    { icon: '♾️', title: 'Sınırsız Ders', description: 'Tüm derslere sınırsız erişim' },
-    { icon: '📊', title: 'Detaylı İstatistikler', description: 'İlerlemeni detaylı takip et' },
-    { icon: '🎯', title: 'Özel Hedefler', description: 'Kişisel öğrenme hedefleri belirle' },
-    { icon: '💬', description: 'Premium Destek', description: '7/24 öncelikli destek' },
-    { icon: '🎨', title: 'Özel Temalar', description: 'Uygulamayı kişiselleştir' },
+    { icon: '📚', titleKey: 'premium.features.unlimitedWords', descKey: 'premium.features.unlimitedWordsDesc' },
+    { icon: '💬', titleKey: 'premium.features.unlimitedDialogs', descKey: 'premium.features.unlimitedDialogsDesc' },
+    { icon: '🎯', titleKey: 'premium.features.allLevels', descKey: 'premium.features.allLevelsDesc' },
+    { icon: '🇹🇷', titleKey: 'premium.features.turkeyInfo', descKey: 'premium.features.turkeyInfoDesc' },
+    { icon: '🗣️', titleKey: 'premium.features.unlimitedPhrases', descKey: 'premium.features.unlimitedPhrasesDesc' },
   ];
 
   return (
@@ -38,29 +38,22 @@ const PremiumScreen: React.FC<Props> = ({ navigation }) => {
           <Ionicons name="close" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-          Premium'a Geç
+          {t('premium.title')}
         </Text>
-        <TouchableOpacity
-          onPress={() => setSelectedVersion(selectedVersion === 1 ? 2 : 1)}
-          style={styles.versionToggle}
-        >
-          <Text style={[styles.versionText, { color: theme.colors.primary.main, fontFamily: theme.typography.fontFamily.medium }]}>
-            V{selectedVersion}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
-        <View style={[styles.heroSection, { backgroundColor: theme.colors.primary.main }]}>
+        <View style={styles.heroSection}>
           <View style={styles.crownContainer}>
             <Text style={styles.crownIcon}>👑</Text>
           </View>
-          <Text style={[styles.heroTitle, { color: theme.colors.text.white, fontFamily: theme.typography.fontFamily.bold }]}>
-            Premium'a Geç
+          <Text style={[styles.heroTitle, { color: '#FFFFFF', fontFamily: theme.typography.fontFamily.bold }]}>
+            {t('premium.title')}
           </Text>
-          <Text style={[styles.heroSubtitle, { color: theme.colors.text.white, fontFamily: theme.typography.fontFamily.regular }]}>
-            Türkçe öğrenme deneyimini bir üst seviyeye taşı
+          <Text style={[styles.heroSubtitle, { color: '#FFFFFF', fontFamily: theme.typography.fontFamily.regular }]}>
+            {t('premium.subtitle')}
           </Text>
         </View>
 
@@ -71,113 +64,75 @@ const PremiumScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.featureIcon}>{feature.icon}</Text>
               <View style={styles.featureContent}>
                 <Text style={[styles.featureTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-                  {feature.title}
+                  {t(feature.titleKey)}
                 </Text>
                 <Text style={[styles.featureDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-                  {feature.description}
+                  {t(feature.descKey)}
                 </Text>
               </View>
-              <Ionicons name="checkmark-circle" size={24} color={theme.colors.success.main} />
+              <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             </View>
           ))}
         </View>
 
-        {/* Pricing Cards (Version 1) */}
-        {selectedVersion === 1 && (
-          <View style={styles.pricingContainer}>
-            <Card variant="elevated" padding="large" style={styles.pricingCard}>
-              <Text style={[styles.pricingLabel, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-                Aylık
-              </Text>
-              <View style={styles.pricingRow}>
-                <Text style={[styles.pricingAmount, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  ₺99
-                </Text>
-                <Text style={[styles.pricingPeriod, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-                  /ay
-                </Text>
-              </View>
-              <Button
-                title="Seç"
-                onPress={() => navigation.navigate('ChooseSubscriptionPlan', { plan: 'monthly' })}
-                variant="primary"
-                size="medium"
-                fullWidth
-                style={styles.pricingButton}
-              />
-            </Card>
-
-            <Card variant="elevated" padding="large" style={[styles.pricingCard, styles.pricingCardRecommended]}>
-              <View style={styles.recommendedBadge}>
-                <Text style={[styles.recommendedText, { color: theme.colors.text.white, fontFamily: theme.typography.fontFamily.medium }]}>
-                  ÖNERİLEN
-                </Text>
-              </View>
-              <Text style={[styles.pricingLabel, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-                Yıllık
-              </Text>
-              <View style={styles.pricingRow}>
-                <Text style={[styles.pricingAmount, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  ₺799
-                </Text>
-                <Text style={[styles.pricingPeriod, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-                  /yıl
-                </Text>
-              </View>
-              <Text style={[styles.pricingSavings, { color: theme.colors.success.main, fontFamily: theme.typography.fontFamily.medium }]}>
-                %33 tasarruf
-              </Text>
-              <Button
-                title="Seç"
-                onPress={() => navigation.navigate('ChooseSubscriptionPlan', { plan: 'yearly' })}
-                variant="primary"
-                size="medium"
-                fullWidth
-                style={styles.pricingButton}
-              />
-            </Card>
-          </View>
-        )}
-
-        {/* Version 2 Layout */}
-        {selectedVersion === 2 && (
-          <Card variant="elevated" padding="large" style={styles.version2Card}>
-            <Text style={[styles.version2Title, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-              Abonelik Planları
+        {/* Pricing Cards */}
+        <View style={styles.pricingContainer}>
+          <Card variant="elevated" padding="large" style={[styles.pricingCard, { backgroundColor: theme.colors.background.paper }]}>
+            <Text style={[styles.pricingLabel, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
+              {t('premium.monthly')}
             </Text>
-            <View style={styles.version2Plans}>
-              <TouchableOpacity
-                style={styles.version2PlanItem}
-                onPress={() => navigation.navigate('ChooseSubscriptionPlan', { plan: 'monthly' })}
-              >
-                <Text style={[styles.version2PlanName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-                  Aylık
-                </Text>
-                <Text style={[styles.version2PlanPrice, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  ₺99/ay
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.version2PlanItem, styles.version2PlanItemRecommended]}
-                onPress={() => navigation.navigate('ChooseSubscriptionPlan', { plan: 'yearly' })}
-              >
-                <Text style={[styles.version2PlanName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-                  Yıllık
-                </Text>
-                <Text style={[styles.version2PlanPrice, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  ₺799/yıl
-                </Text>
-                <Text style={[styles.version2PlanSavings, { color: theme.colors.success.main, fontFamily: theme.typography.fontFamily.medium }]}>
-                  %33 tasarruf
-                </Text>
-              </TouchableOpacity>
+            <View style={styles.pricingRow}>
+              <Text style={[styles.pricingAmount, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+                ₺99
+              </Text>
+              <Text style={[styles.pricingPeriod, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
+                /{t('premium.perMonth')}
+              </Text>
             </View>
+            <Button
+              title={t('premium.select')}
+              onPress={() => navigation.navigate('SelectPaymentMethod', { planId: 'monthly' })}
+              variant="primary"
+              size="medium"
+              fullWidth
+              style={styles.pricingButton}
+            />
           </Card>
-        )}
+
+          <Card variant="elevated" padding="large" style={[styles.pricingCard, styles.pricingCardRecommended, { backgroundColor: theme.colors.background.paper }]}>
+            <View style={styles.recommendedBadge}>
+              <Text style={[styles.recommendedText, { fontFamily: theme.typography.fontFamily.medium }]}>
+                {t('premium.recommended')}
+              </Text>
+            </View>
+            <Text style={[styles.pricingLabel, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
+              {t('premium.yearly')}
+            </Text>
+            <View style={styles.pricingRow}>
+              <Text style={[styles.pricingAmount, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+                ₺799
+              </Text>
+              <Text style={[styles.pricingPeriod, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
+                /{t('premium.perYear')}
+              </Text>
+            </View>
+            <Text style={[styles.pricingSavings, { color: '#4CAF50', fontFamily: theme.typography.fontFamily.medium }]}>
+              {t('premium.savings')}
+            </Text>
+            <Button
+              title={t('premium.select')}
+              onPress={() => navigation.navigate('SelectPaymentMethod', { planId: 'yearly' })}
+              variant="primary"
+              size="medium"
+              fullWidth
+              style={styles.pricingButton}
+            />
+          </Card>
+        </View>
 
         {/* Terms */}
         <Text style={[styles.termsText, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-          Aboneliği istediğin zaman iptal edebilirsin. Otomatik yenilenir.
+          {t('premium.terms')}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -206,19 +161,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  versionToggle: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-  },
-  versionText: {
-    fontSize: 12,
+  headerPlaceholder: {
+    width: 40,
   },
   scrollContent: {
     paddingBottom: 40,
   },
   heroSection: {
+    backgroundColor: '#0d9cdd',
     padding: 32,
     alignItems: 'center',
     marginBottom: 32,
@@ -273,13 +223,13 @@ const styles = StyleSheet.create({
   },
   pricingCardRecommended: {
     borderWidth: 2,
-    borderColor: '#6949ff',
+    borderColor: '#0d9cdd',
   },
   recommendedBadge: {
     position: 'absolute',
     top: -12,
     alignSelf: 'center',
-    backgroundColor: '#6949ff',
+    backgroundColor: '#0d9cdd',
     paddingHorizontal: 16,
     paddingVertical: 4,
     borderRadius: 12,
@@ -287,6 +237,7 @@ const styles = StyleSheet.create({
   recommendedText: {
     fontSize: 10,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
   pricingLabel: {
     fontSize: 14,
@@ -311,40 +262,7 @@ const styles = StyleSheet.create({
   },
   pricingButton: {
     marginTop: 8,
-  },
-  version2Card: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  version2Title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  version2Plans: {
-    gap: 12,
-  },
-  version2PlanItem: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  version2PlanItemRecommended: {
-    borderColor: '#6949ff',
-    borderWidth: 2,
-  },
-  version2PlanName: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  version2PlanPrice: {
-    fontSize: 24,
-  },
-  version2PlanSavings: {
-    fontSize: 12,
-    marginTop: 4,
+    backgroundColor: '#0d9cdd',
   },
   termsText: {
     fontSize: 12,

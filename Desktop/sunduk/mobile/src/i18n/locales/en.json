@@ -29,7 +29,20 @@
     "languageSelection": {
       "title": "Your Native Language",
       "appLanguage": "App Language",
-      "continue": "Continue"
+      "continue": "Continue",
+      "mascotSpeech": "Hurry up and pick the app language"
+    },
+    "name": {
+      "title": "Create your account",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "continue": "Continue",
+      "registerError": "Registration Error",
+      "registerErrorMessage": "Registration failed. Please try again."
     },
     "success": {
       "hurray": "Bravo! You are ready!",
@@ -52,11 +65,29 @@
     "goPremium": "Go Premium",
     "settings": "Settings",
     "helpCenter": "Help Center",
-    "logout": "Logout"
+    "logout": "Logout",
+    "birthDate": "Birth Date",
+    "joinDate": "Joined in"
   },
   "settings": {
     "title": "Settings",
     "personalInfo": "Personal Info",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email address",
+    "birthDate": "Date of Birth",
+    "birthDatePlaceholder": "YYYY-MM-DD",
+    "selectBirthDate": "Select Date of Birth",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Update your account password",
+    "changePasswordComingSoon": "This feature is coming soon",
+    "save": "Save",
+    "error": "Error",
+    "errorMessage": "Full Name and Email fields are required",
+    "success": "Success",
+    "successMessage": "Your information has been updated",
+    "updateErrorMessage": "An error occurred while updating information",
     "notification": "Notification",
     "general": "General",
     "accessibility": "Accessibility",
@@ -66,7 +97,7 @@
     "appLanguage": "App Language",
     "languageDescription": "Select the language for the app interface.",
     "helpCenter": "Help Center",
-    "aboutElingo": "About Elingo",
+    "aboutSunduk": "About Sunduk",
     "logout": "Logout"
   },
   "tabs": {
@@ -80,6 +111,77 @@
     "weekly": "Weekly",
     "monthly": "Monthly",
     "allTime": "All Time"
+  },
+  "auth": {
+    "login": {
+      "greeting": "Hello there 👋",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot Password?",
+      "signIn": "SIGN IN",
+      "error": "Error",
+      "errorMessage": "Please fill in all fields",
+      "loginError": "Login Error",
+      "loginErrorMessage": "Login failed"
+    }
+  },
+  "notifications": {
+    "dailyReminders": "Daily Reminders",
+    "dailyRemindersDesc": "Reminder to continue learning every day",
+    "achievements": "Badge Notifications",
+    "achievementsDesc": "Get notified when you earn a new badge",
+    "streakReminders": "Streak Reminders",
+    "streakRemindersDesc": "Reminder to keep your streak going",
+    "lessonReminders": "Lesson Reminders",
+    "lessonRemindersDesc": "Notifications about new lessons",
+    "marketing": "Marketing Notifications",
+    "marketingDesc": "Special offers and updates"
+  },
+  "logout": {
+    "title": "Logout",
+    "message": "Are you sure you want to logout from your account?",
+    "confirm": "Logout"
+  },
+  "payment": {
+    "title": "Payment Method",
+    "selectMethod": "Select payment method",
+    "creditCard": "Credit/Debit Card",
+    "cardDetails": "Card Details",
+    "cardNumber": "Card Number",
+    "cardHolder": "Card Holder",
+    "cardHolderPlaceholder": "Full Name",
+    "expiryDate": "Expiry Date",
+    "summary": "Summary",
+    "plan": "Plan",
+    "amount": "Amount",
+    "complete": "Complete Payment"
+  },
+  "premium": {
+    "title": "Go Premium",
+    "subtitle": "Take your language learning to the next level",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "perMonth": "month",
+    "perYear": "year",
+    "select": "Select",
+    "recommended": "RECOMMENDED",
+    "savings": "33% savings",
+    "terms": "You can cancel your subscription anytime. Auto-renews.",
+    "features": {
+      "unlimitedWords": "Unlimited Word Learning",
+      "unlimitedWordsDesc": "Unlimited access to all words",
+      "unlimitedDialogs": "Unlimited Dialog Learning",
+      "unlimitedDialogsDesc": "Unlimited access to all dialogs",
+      "allLevels": "Access All Levels",
+      "allLevelsDesc": "All content from beginner to advanced",
+      "turkeyInfo": "Unlimited Info About Turkey",
+      "turkeyInfoDesc": "Information about Turkish culture and life",
+      "unlimitedPhrases": "Unlimited Phrase Learning",
+      "unlimitedPhrasesDesc": "All common phrases used in daily life"
+    }
   }
 }
 

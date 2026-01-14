@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Switch } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { Card } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
+import BackButton from '../../components/BackButton';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'NotificationSettings'>;
 
 const NotificationSettingsScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [dailyReminders, setDailyReminders] = useState(true);
   const [achievements, setAchievements] = useState(true);
   const [streakReminders, setStreakReminders] = useState(true);
@@ -20,10 +22,10 @@ const NotificationSettingsScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background.default }]} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+          <BackButton width={28} height={28} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-          Bildirimler
+          {t('settings.notification')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -32,61 +34,61 @@ const NotificationSettingsScreen: React.FC<Props> = ({ navigation }) => {
         <Card variant="default" padding="medium" style={styles.settingCard}>
           <View style={styles.settingContent}>
             <Text style={[styles.settingTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-              Günlük Hatırlatmalar
+              {t('notifications.dailyReminders')}
             </Text>
             <Text style={[styles.settingDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Her gün öğrenmeye devam etmen için hatırlatma
+              {t('notifications.dailyRemindersDesc')}
             </Text>
           </View>
-          <Switch value={dailyReminders} onValueChange={setDailyReminders} trackColor={{ false: theme.colors.grey[400], true: theme.colors.primary.main }} thumbColor={theme.colors.text.white} />
+          <Switch value={dailyReminders} onValueChange={setDailyReminders} trackColor={{ false: '#E0E0E0', true: '#0d9cdd' }} thumbColor="#FFFFFF" />
         </Card>
 
         <Card variant="default" padding="medium" style={styles.settingCard}>
           <View style={styles.settingContent}>
             <Text style={[styles.settingTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-              Rozet Bildirimleri
+              {t('notifications.achievements')}
             </Text>
             <Text style={[styles.settingDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Yeni rozet kazandığında bildirim al
+              {t('notifications.achievementsDesc')}
             </Text>
           </View>
-          <Switch value={achievements} onValueChange={setAchievements} trackColor={{ false: theme.colors.grey[400], true: theme.colors.primary.main }} thumbColor={theme.colors.text.white} />
+          <Switch value={achievements} onValueChange={setAchievements} trackColor={{ false: '#E0E0E0', true: '#0d9cdd' }} thumbColor="#FFFFFF" />
         </Card>
 
         <Card variant="default" padding="medium" style={styles.settingCard}>
           <View style={styles.settingContent}>
             <Text style={[styles.settingTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-              Seri Hatırlatmaları
+              {t('notifications.streakReminders')}
             </Text>
             <Text style={[styles.settingDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Serini korumak için hatırlatma
+              {t('notifications.streakRemindersDesc')}
             </Text>
           </View>
-          <Switch value={streakReminders} onValueChange={setStreakReminders} trackColor={{ false: theme.colors.grey[400], true: theme.colors.primary.main }} thumbColor={theme.colors.text.white} />
+          <Switch value={streakReminders} onValueChange={setStreakReminders} trackColor={{ false: '#E0E0E0', true: '#0d9cdd' }} thumbColor="#FFFFFF" />
         </Card>
 
         <Card variant="default" padding="medium" style={styles.settingCard}>
           <View style={styles.settingContent}>
             <Text style={[styles.settingTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-              Ders Hatırlatmaları
+              {t('notifications.lessonReminders')}
             </Text>
             <Text style={[styles.settingDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Yeni dersler hakkında bildirim
+              {t('notifications.lessonRemindersDesc')}
             </Text>
           </View>
-          <Switch value={lessonReminders} onValueChange={setLessonReminders} trackColor={{ false: theme.colors.grey[400], true: theme.colors.primary.main }} thumbColor={theme.colors.text.white} />
+          <Switch value={lessonReminders} onValueChange={setLessonReminders} trackColor={{ false: '#E0E0E0', true: '#0d9cdd' }} thumbColor="#FFFFFF" />
         </Card>
 
         <Card variant="default" padding="medium" style={styles.settingCard}>
           <View style={styles.settingContent}>
             <Text style={[styles.settingTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}>
-              Pazarlama Bildirimleri
+              {t('notifications.marketing')}
             </Text>
             <Text style={[styles.settingDescription, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-              Özel teklifler ve güncellemeler
+              {t('notifications.marketingDesc')}
             </Text>
           </View>
-          <Switch value={marketing} onValueChange={setMarketing} trackColor={{ false: theme.colors.grey[400], true: theme.colors.primary.main }} thumbColor={theme.colors.text.white} />
+          <Switch value={marketing} onValueChange={setMarketing} trackColor={{ false: '#E0E0E0', true: '#0d9cdd' }} thumbColor="#FFFFFF" />
         </Card>
       </ScrollView>
     </SafeAreaView>
@@ -95,11 +97,11 @@ const NotificationSettingsScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 },
-  backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-start' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 },
+  backButton: { width: 28, height: 28, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  placeholder: { width: 40 },
-  scrollContent: { padding: 20, paddingBottom: 40, gap: 12 },
+  placeholder: { width: 28 },
+  scrollContent: { padding: 24, paddingBottom: 40, gap: 12 },
   settingCard: { marginBottom: 0 },
   settingContent: { flex: 1, marginRight: 16 },
   settingTitle: { fontSize: 16, marginBottom: 4 },

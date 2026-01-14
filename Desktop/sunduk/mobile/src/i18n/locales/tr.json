@@ -23,19 +23,32 @@
     "welcome": {
       "title": "Sunduk",
       "subtitle": "Hızlı Öğren, Özgürce Konuş.",
-      "getStarted": "GET STARTED",
-      "alreadyHaveAccount": "I ALREADY HAVE AN ACCOUNT"
+      "getStarted": "BAŞLA",
+      "alreadyHaveAccount": "ZATEN HESABIM VAR"
     },
     "languageSelection": {
       "title": "Your Native Language",
-      "appLanguage": "App Language",
-      "continue": "Continue"
+      "appLanguage": "Uygulama Dili",
+      "continue": "Devam Et",
+      "mascotSpeech": "Hadi, uygulama dilini seç!"
+    },
+    "name": {
+      "title": "Hesabını oluştur",
+      "fullName": "Ad Soyad",
+      "fullNamePlaceholder": "Adını ve soyadını gir",
+      "email": "E-posta",
+      "emailPlaceholder": "E-posta adresini gir",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifreni gir",
+      "continue": "Devam Et",
+      "registerError": "Kayıt Hatası",
+      "registerErrorMessage": "Kayıt yapılamadı. Lütfen tekrar deneyin."
     },
     "success": {
       "hurray": "Harika, hazırsın!",
       "title": "İşte bu kadar!",
       "subtitle": "Yeni dil maceran şimdi başlıyor.",
-      "continueToHome": "CONTINUE TO HOME"
+      "continueToHome": "ANA SAYFAYA GEÇ"
     }
   },
   "home": {
@@ -52,11 +65,29 @@
     "goPremium": "Premium'a Geç",
     "settings": "Ayarlar",
     "helpCenter": "Yardım Merkezi",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "birthDate": "Doğum Tarihi",
+    "joinDate": "tarihinde katıldı"
   },
   "settings": {
     "title": "Ayarlar",
     "personalInfo": "Kişisel Bilgiler",
+    "fullName": "Ad Soyad",
+    "fullNamePlaceholder": "Adını ve soyadını gir",
+    "email": "Email",
+    "emailPlaceholder": "E-posta adresini gir",
+    "birthDate": "Doğum Tarihi",
+    "birthDatePlaceholder": "YYYY-MM-DD",
+    "selectBirthDate": "Doğum Tarihi Seç",
+    "changePassword": "Şifreyi Değiştir",
+    "changePasswordDesc": "Hesap şifreni güncelle",
+    "changePasswordComingSoon": "Bu özellik yakında eklenecek",
+    "save": "Kaydet",
+    "error": "Hata",
+    "errorMessage": "Ad Soyad ve Email alanları zorunludur",
+    "success": "Başarılı",
+    "successMessage": "Bilgileriniz güncellendi",
+    "updateErrorMessage": "Bilgiler güncellenirken bir hata oluştu",
     "notification": "Bildirimler",
     "general": "Genel",
     "accessibility": "Erişilebilirlik",
@@ -66,7 +97,7 @@
     "appLanguage": "Uygulama Dili",
     "languageDescription": "Uygulama arayüzünün görüntüleneceği dili seçin.",
     "helpCenter": "Yardım Merkezi",
-    "aboutElingo": "Elingo Hakkında",
+    "aboutSunduk": "Sunduk Hakkında",
     "logout": "Çıkış Yap"
   },
   "tabs": {
@@ -80,6 +111,77 @@
     "weekly": "Weekly",
     "monthly": "Monthly",
     "allTime": "All Time"
+  },
+  "auth": {
+    "login": {
+      "greeting": "Merhaba 👋",
+      "email": "E-posta",
+      "emailPlaceholder": "E-posta adresini gir",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifreni gir",
+      "rememberMe": "Beni hatırla",
+      "forgotPassword": "Şifremi Unuttum?",
+      "signIn": "GİRİŞ YAP",
+      "error": "Hata",
+      "errorMessage": "Lütfen tüm alanları doldurun",
+      "loginError": "Giriş Hatası",
+      "loginErrorMessage": "Giriş yapılamadı"
+    }
+  },
+  "notifications": {
+    "dailyReminders": "Günlük Hatırlatmalar",
+    "dailyRemindersDesc": "Her gün öğrenmeye devam etmen için hatırlatma",
+    "achievements": "Rozet Bildirimleri",
+    "achievementsDesc": "Yeni rozet kazandığında bildirim al",
+    "streakReminders": "Seri Hatırlatmaları",
+    "streakRemindersDesc": "Serini korumak için hatırlatma",
+    "lessonReminders": "Ders Hatırlatmaları",
+    "lessonRemindersDesc": "Yeni dersler hakkında bildirim",
+    "marketing": "Pazarlama Bildirimleri",
+    "marketingDesc": "Özel teklifler ve güncellemeler"
+  },
+  "logout": {
+    "title": "Çıkış Yap",
+    "message": "Hesabından çıkış yapmak istediğinden emin misin?",
+    "confirm": "Çıkış Yap"
+  },
+  "payment": {
+    "title": "Ödeme Yöntemi",
+    "selectMethod": "Ödeme yöntemini seç",
+    "creditCard": "Kredi/Banka Kartı",
+    "cardDetails": "Kart Bilgileri",
+    "cardNumber": "Kart Numarası",
+    "cardHolder": "Kart Sahibi",
+    "cardHolderPlaceholder": "Ad Soyad",
+    "expiryDate": "Son Kullanma",
+    "summary": "Özet",
+    "plan": "Plan",
+    "amount": "Tutar",
+    "complete": "Ödemeyi Tamamla"
+  },
+  "premium": {
+    "title": "Premium'a Geç",
+    "subtitle": "Dil öğrenme deneyimini bir üst seviyeye taşı",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "perMonth": "ay",
+    "perYear": "yıl",
+    "select": "Seç",
+    "recommended": "ÖNERİLEN",
+    "savings": "%33 tasarruf",
+    "terms": "Aboneliği istediğin zaman iptal edebilirsin. Otomatik yenilenir.",
+    "features": {
+      "unlimitedWords": "Sınırsız Kelime Öğrenme",
+      "unlimitedWordsDesc": "Tüm kelimelere sınırsız erişim",
+      "unlimitedDialogs": "Sınırsız Diyalog Öğrenme",
+      "unlimitedDialogsDesc": "Tüm diyaloglara sınırsız erişim",
+      "allLevels": "Tüm Seviyelere Ulaşma",
+      "allLevelsDesc": "Başlangıçtan ileri seviyeye kadar tüm içerikler",
+      "turkeyInfo": "Türkiye Hakkında Sınırsız Bilgiler",
+      "turkeyInfoDesc": "Türkiye kültürü ve yaşamı hakkında bilgiler",
+      "unlimitedPhrases": "Sınırsız Kalıp İfadeler Öğrenme",
+      "unlimitedPhrasesDesc": "Günlük hayatta kullanılan tüm kalıp ifadeler"
+    }
   }
 }
 

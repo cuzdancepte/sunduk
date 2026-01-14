@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { Button, Card } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,6 +11,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'LogoutModal'>;
 
 const LogoutModalScreen: React.FC<Props> = ({ navigation, route }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { logout, isAuthenticated } = useAuth();
   const [visible, setVisible] = useState(route.params?.visible ?? true);
 
@@ -52,28 +54,28 @@ const LogoutModalScreen: React.FC<Props> = ({ navigation, route }) => {
       onRequestClose={handleClose}
     >
       <View style={styles.modalOverlay}>
-        <Card variant="elevated" padding="large" style={styles.modalContent}>
+        <Card variant="elevated" padding="large" style={[styles.modalContent, { backgroundColor: theme.colors.background.paper }]}>
           <Text style={[styles.modalTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-            Çıkış Yap
+            {t('logout.title')}
           </Text>
           <Text style={[styles.modalText, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
-            Hesabından çıkış yapmak istediğinden emin misin?
+            {t('logout.message')}
           </Text>
 
           <View style={styles.buttonRow}>
             <Button
-              title="İptal"
+              title={t('common.cancel')}
               onPress={handleClose}
               variant="outlined"
               size="medium"
-              style={styles.button}
+              style={[styles.button, styles.cancelButton]}
             />
             <Button
-              title="Çıkış Yap"
+              title={t('logout.confirm')}
               onPress={handleLogout}
               variant="primary"
               size="medium"
-              style={styles.button}
+              style={[styles.button, styles.logoutButton]}
             />
           </View>
         </Card>
@@ -112,6 +114,12 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
+  },
+  cancelButton: {
+    borderColor: '#0d9cdd',
+  },
+  logoutButton: {
+    backgroundColor: '#0d9cdd',
   },
 });
 

@@ -18,13 +18,29 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Success'>;
 const SuccessScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const { isDarkMode } = useThemeContext();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const { setAuthenticated } = useAuth();
   
   // Zıplama animasyonu için animated value
   const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  // Ekran açıldığında seçilen dili yükle
+  useEffect(() => {
+    const loadSelectedLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('onboarding_appLanguageId');
+        if (savedLanguage && ['tr', 'en', 'ru'].includes(savedLanguage) && i18n.language !== savedLanguage) {
+          await i18n.changeLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error loading language:', error);
+      }
+    };
+    loadSelectedLanguage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleContinue = async () => {
     // Onboarding'i tamamlandı olarak işaretle
@@ -85,7 +101,7 @@ const SuccessScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.speechTextContainer}>
             <Text style={[styles.hurrayText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
               {t('onboarding.success.hurray')}
-            </Text>
+          </Text>
           </View>
         </View>
 

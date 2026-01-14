@@ -9,28 +9,55 @@ import {
   Alert,
   Platform,
   Modal,
+  TextInput,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Input, Card } from '../../components/ui';
+import { Button, Card } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
 import { authAPI } from '../../services/api';
+import BackButton from '../../components/BackButton';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PersonalInfo'>;
 
 const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [language, setLanguage] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+
+  const getLocale = () => {
+    const lang = i18n.language || 'tr';
+    if (lang.startsWith('tr')) return 'tr-TR';
+    if (lang.startsWith('ru')) return 'ru-RU';
+    return 'en-US';
+  };
+
+  // Ekran açıldığında seçilen dili yükle
+  useEffect(() => {
+    const loadSelectedLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('onboarding_appLanguageId');
+        if (savedLanguage && ['tr', 'en', 'ru'].includes(savedLanguage) && i18n.language !== savedLanguage) {
+          await i18n.changeLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error loading language:', error);
+      }
+    };
+    loadSelectedLanguage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load user data on mount
   useEffect(() => {
@@ -40,7 +67,6 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         const userData = await authAPI.getCurrentUser();
         setName(userData.username || '');
         setEmail(userData.email || '');
-        setLanguage(userData.nativeLanguage?.name || 'Türkçe');
         // birthDate is not in user model yet
         setBirthDate(null);
       } catch (error: any) {
@@ -49,7 +75,6 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         // This prevents infinite loading state
         setName('');
         setEmail('');
-        setLanguage('Türkçe');
       } finally {
         setInitialLoading(false);
       }
@@ -60,7 +85,7 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleSave = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert('Hata', 'Ad Soyad ve Email alanları zorunludur');
+      Alert.alert(t('settings.error'), t('settings.errorMessage'));
       return;
     }
 
@@ -71,14 +96,14 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         email: email.trim(),
         // nativeLanguageId can be added when language selection is implemented
       });
-      Alert.alert('Başarılı', 'Bilgileriniz güncellendi', [
-        { text: 'Tamam', onPress: () => navigation.goBack() },
+      Alert.alert(t('settings.success'), t('settings.successMessage'), [
+        { text: t('common.confirm'), onPress: () => navigation.goBack() },
       ]);
     } catch (error: any) {
       console.error('Update profile error:', error);
       Alert.alert(
-        'Hata',
-        error.response?.data?.error || 'Bilgiler güncellenirken bir hata oluştu'
+        t('settings.error'),
+        error.response?.data?.error || t('settings.updateErrorMessage')
       );
     } finally {
       setLoading(false);
@@ -92,84 +117,116 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+          <BackButton width={28} height={28} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-          Kişisel Bilgiler
+          {t('settings.personalInfo')}
         </Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 160 + insets.bottom }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 200 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         <Card variant="default" padding="large" style={styles.avatarCard}>
           <View style={styles.avatarContainer}>
-            <View style={[styles.avatar, { backgroundColor: theme.colors.primary.main }]}>
+            <View style={[styles.avatar, { backgroundColor: '#0d9cdd' }]}>
               <Text style={[styles.avatarText, { color: theme.colors.text.white, fontFamily: theme.typography.fontFamily.bold }]}>
-                {name.charAt(0).toUpperCase()}
+                {name.charAt(0).toUpperCase() || 'U'}
               </Text>
             </View>
-            <TouchableOpacity style={[styles.editAvatarButton, { backgroundColor: theme.colors.primary.main, borderColor: theme.colors.background.paper }]}>
+            <TouchableOpacity style={[styles.editAvatarButton, { backgroundColor: '#0d9cdd', borderColor: theme.colors.background.paper }]}>
               <Ionicons name="camera" size={20} color={theme.colors.text.white} />
             </TouchableOpacity>
           </View>
         </Card>
 
         <View style={styles.formContainer}>
-          <Input
-            label="Ad Soyad"
-            placeholder="Ad Soyad"
-            value={name}
-            onChangeText={setName}
-            containerStyle={styles.inputSpacing}
-          />
-
-          <Input
-            label="Email"
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            containerStyle={styles.inputSpacing}
-          />
-
-          <View style={styles.inputSpacing}>
+          {/* Full Name Input */}
+          <View style={styles.inputSection}>
             <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-              Doğum Tarihi
+              {t('settings.fullName')}
             </Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={[styles.dateInputContainer, {
-                backgroundColor: theme.colors.background.paper,
-                borderColor: theme.colors.border.light,
-              }]}
-            >
-              <Text style={[styles.dateInputText, {
-                color: birthDate ? theme.colors.text.primary : theme.colors.text.secondary,
-                fontFamily: theme.typography.fontFamily.regular,
-              }]}>
-                {birthDate
-                  ? birthDate.toLocaleDateString('tr-TR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                    })
-                  : 'YYYY-MM-DD'}
-              </Text>
-              <Ionicons name="calendar-outline" size={20} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
+                placeholder={t('settings.fullNamePlaceholder')}
+                placeholderTextColor={theme.colors.text.secondary}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
+              <View style={styles.inputUnderline} />
+            </View>
           </View>
 
-          <Input
-            label="Ana Dil"
-            placeholder="Ana Dil"
-            value={language}
-            onChangeText={setLanguage}
-            containerStyle={styles.inputSpacing}
-          />
+          {/* Email Input */}
+          <View style={styles.inputSection}>
+            <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+              {t('settings.email')}
+            </Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[styles.input, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}
+                placeholder={t('settings.emailPlaceholder')}
+                placeholderTextColor={theme.colors.text.secondary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={styles.inputUnderline} />
+            </View>
+          </View>
+
+          {/* Birth Date Input */}
+          <View style={styles.inputSection}>
+            <Text style={[styles.inputLabel, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+              {t('settings.birthDate')}
+            </Text>
+            <View style={styles.inputWrapper}>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={styles.dateInputContainer}
+              >
+                <Text style={[styles.dateInputText, {
+                  color: birthDate ? theme.colors.text.primary : theme.colors.text.secondary,
+                  fontFamily: theme.typography.fontFamily.bold,
+                }]}>
+                  {birthDate
+                    ? birthDate.toLocaleDateString(getLocale(), {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : t('settings.birthDatePlaceholder')}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#0d9cdd" />
+              </TouchableOpacity>
+              <View style={styles.inputUnderline} />
+            </View>
+          </View>
+
+          {/* Change Password */}
+          <TouchableOpacity
+            onPress={() => Alert.alert(t('settings.changePassword'), t('settings.changePasswordComingSoon'))}
+            style={styles.changePasswordButton}
+          >
+            <View style={styles.changePasswordContent}>
+              <Ionicons name="lock-closed-outline" size={24} color="#0d9cdd" />
+              <View style={styles.changePasswordText}>
+                <Text style={[styles.changePasswordTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
+                  {t('settings.changePassword')}
+                </Text>
+                <Text style={[styles.changePasswordDesc, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.regular }]}>
+                  {t('settings.changePasswordDesc')}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -179,13 +236,14 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
         paddingBottom: 40 + insets.bottom,
       }]}>
         <Button
-          title="Kaydet"
+          title={t('settings.save')}
           onPress={handleSave}
           variant="primary"
           size="large"
           fullWidth
           loading={loading}
           disabled={loading || !name.trim() || !email.trim()}
+          style={styles.saveButton}
         />
       </View>
 
@@ -200,17 +258,17 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.modalContent, { backgroundColor: theme.colors.background.paper }]}>
               <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border.light }]}>
                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text style={[styles.modalButton, { color: theme.colors.primary.main }]}>İptal</Text>
+                  <Text style={[styles.modalButton, { color: '#0d9cdd' }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <Text style={[styles.modalTitle, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
-                  Doğum Tarihi Seç
+                  {t('settings.selectBirthDate')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
                     setShowDatePicker(false);
                   }}
                 >
-                  <Text style={[styles.modalButton, { color: theme.colors.primary.main }]}>Tamam</Text>
+                  <Text style={[styles.modalButton, { color: '#0d9cdd' }]}>{t('common.confirm')}</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
@@ -223,7 +281,7 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
                   }
                 }}
                 maximumDate={new Date()}
-                locale="tr-TR"
+                locale={getLocale()}
                 style={styles.datePicker}
         />
       </View>
@@ -242,7 +300,7 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
               }
             }}
             maximumDate={new Date()}
-            locale="tr-TR"
+            locale={getLocale()}
           />
         )
       )}
@@ -258,15 +316,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 20,
@@ -276,12 +334,13 @@ const styles = StyleSheet.create({
     width: 40,
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 140, // Button container height (20 + 56 + 40) + extra space
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 200, // Button container için alan
   },
   avatarCard: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   avatarContainer: {
     position: 'relative',
@@ -309,27 +368,47 @@ const styles = StyleSheet.create({
     borderWidth: 3,
   },
   formContainer: {
-    gap: 16,
+    gap: 0,
+    paddingHorizontal: 0,
   },
-  inputSpacing: {
-    marginBottom: 0,
+  inputSection: {
+    gap: 16,
+    marginBottom: 32,
   },
   inputLabel: {
-    fontSize: 14,
-    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22.4,
+    letterSpacing: 0.2,
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  input: {
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 38.4,
+    letterSpacing: 0,
+    paddingVertical: 0,
+    minHeight: 38.4,
+  },
+  inputUnderline: {
+    height: 1,
+    backgroundColor: '#0d9cdd',
+    borderRadius: 100,
+    width: '100%',
   },
   dateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    minHeight: 48,
+    paddingVertical: 0,
+    minHeight: 38.4,
   },
   dateInputText: {
-    fontSize: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 38.4,
     flex: 1,
   },
   modalOverlay: {
@@ -365,9 +444,44 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
+    paddingHorizontal: 32,
+    paddingTop: 24,
     paddingBottom: 40,
     borderTopWidth: 1,
+  },
+  saveButton: {
+    backgroundColor: '#0d9cdd',
+    borderRadius: 100,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    shadowColor: '#0d9cdd',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+  },
+  changePasswordButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    marginTop: 16,
+  },
+  changePasswordContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    flex: 1,
+  },
+  changePasswordText: {
+    flex: 1,
+  },
+  changePasswordTitle: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  changePasswordDesc: {
+    fontSize: 14,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
 
