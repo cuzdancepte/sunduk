@@ -66,14 +66,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       screen: 'LanguageSettings',
     },
     {
-      id: 'invite-friend',
-      title: t('settings.inviteFriend'),
-      icon: 'person-add-outline',
-      iconColor: '#FF9800',
-      iconBgColor: 'rgba(255,152,0,0.08)',
-      screen: 'InviteFriend',
-    },
-    {
       id: 'dark-mode',
       title: t('settings.darkMode'),
       icon: 'eye-outline',

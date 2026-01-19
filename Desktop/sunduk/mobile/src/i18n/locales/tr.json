@@ -107,10 +107,12 @@
     "profile": "Profil"
   },
   "leaderboard": {
-    "title": "Leaderboard",
-    "weekly": "Weekly",
-    "monthly": "Monthly",
-    "allTime": "All Time"
+    "title": "Sıralama",
+    "weekly": "Haftalık",
+    "monthly": "Aylık",
+    "allTime": "Tüm Zamanlar",
+    "you": "Sen",
+    "yourRank": "Senin Sıran"
   },
   "auth": {
     "login": {
@@ -181,6 +183,29 @@
       "turkeyInfoDesc": "Türkiye kültürü ve yaşamı hakkında bilgiler",
       "unlimitedPhrases": "Sınırsız Kalıp İfadeler Öğrenme",
       "unlimitedPhrasesDesc": "Günlük hayatta kullanılan tüm kalıp ifadeler"
+    }
+  },
+  "invite": {
+    "title": "Arkadaşını Davet Et",
+    "subtitle": "Arkadaşlarını davet ederek hem onlara hem de kendine avantajlar sağla!",
+    "referralCode": "Referans Kodun",
+    "copied": "Kopyalandı",
+    "copiedMessage": "Referans kodu: {{code}}",
+    "shareButton": "Arkadaşını Davet Et",
+    "shareTitle": "Sunduk'a Katıl",
+    "shareMessage": "Sunduk uygulamasını denemek ister misin? Referans kodum: {{code}}\n\n{{link}}",
+    "shareError": "Hata",
+    "shareErrorMessage": "Paylaşım yapılamadı",
+    "benefits": {
+      "title": "Avantajlar",
+      "reward": {
+        "title": "Her Davet İçin Ödül",
+        "desc": "Arkadaşını davet et, ikiniz de özel ödüller kazanın"
+      },
+      "xp": {
+        "title": "Ekstra XP Puanları",
+        "desc": "Davet ettiğin her arkadaş için bonus XP kazan"
+      }
     }
   }
 }

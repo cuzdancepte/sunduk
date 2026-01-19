@@ -145,6 +145,21 @@ const ProfileScreen = () => {
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('App', { screen: 'InviteFriend' })}
+            style={[styles.menuItem, { backgroundColor: theme.colors.background.paper }]}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIconContainer, { backgroundColor: 'rgba(255,152,0,0.2)' }]}>
+                <Ionicons name="people-outline" size={20} color="#FF9800" />
+              </View>
+              <Text style={[styles.menuItemText, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.medium }]}>
+                {t('settings.inviteFriend')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

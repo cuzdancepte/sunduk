@@ -110,7 +110,9 @@
     "title": "Leaderboard",
     "weekly": "Weekly",
     "monthly": "Monthly",
-    "allTime": "All Time"
+    "allTime": "All Time",
+    "you": "You",
+    "yourRank": "Your Rank"
   },
   "auth": {
     "login": {
@@ -181,6 +183,29 @@
       "turkeyInfoDesc": "Information about Turkish culture and life",
       "unlimitedPhrases": "Unlimited Phrase Learning",
       "unlimitedPhrasesDesc": "All common phrases used in daily life"
+    }
+  },
+  "invite": {
+    "title": "Invite Friend",
+    "subtitle": "Invite your friends and provide benefits to both them and yourself!",
+    "referralCode": "Your Referral Code",
+    "copied": "Copied",
+    "copiedMessage": "Referral code: {{code}}",
+    "shareButton": "Invite Friend",
+    "shareTitle": "Join Sunduk",
+    "shareMessage": "Would you like to try the Sunduk app? My referral code: {{code}}\n\n{{link}}",
+    "shareError": "Error",
+    "shareErrorMessage": "Could not share",
+    "benefits": {
+      "title": "Benefits",
+      "reward": {
+        "title": "Reward for Each Invitation",
+        "desc": "Invite your friend, both of you earn special rewards"
+      },
+      "xp": {
+        "title": "Extra XP Points",
+        "desc": "Earn bonus XP for every friend you invite"
+      }
     }
   }
 }

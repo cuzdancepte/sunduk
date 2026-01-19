@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
 import { Card, Button } from '../../components/ui';
 import { AppStackParamList } from '../../navigation/AppStack';
+import BackButton from '../../components/BackButton';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'InviteFriend'>;
 
@@ -30,11 +31,11 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Sunduk uygulamasını denemek ister misin? Referans kodum: ${referralCode}\n\n${referralLink}`,
-        title: 'Sunduk\'a Katıl',
+        message: t('invite.shareMessage', { code: referralCode, link: referralLink }),
+        title: t('invite.shareTitle'),
       });
     } catch (error) {
-      Alert.alert('Hata', 'Paylaşım yapılamadı');
+      Alert.alert(t('invite.shareError'), t('invite.shareErrorMessage'));
     }
   };
 
@@ -42,24 +43,19 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
     // Clipboard API kullanılabilir
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    Alert.alert('Kopyalandı', `Referans kodu: ${referralCode}`);
+    Alert.alert(t('invite.copied'), t('invite.copiedMessage', { code: referralCode }));
   };
 
   const benefits = [
     {
       icon: 'gift',
-      title: 'Her Davet İçin Ödül',
-      description: 'Arkadaşını davet et, ikiniz de özel ödüller kazanın',
+      titleKey: 'invite.benefits.reward.title',
+      descKey: 'invite.benefits.reward.desc',
     },
     {
       icon: 'trophy',
-      title: 'Ekstra XP Puanları',
-      description: 'Davet ettiğin her arkadaş için bonus XP kazan',
-    },
-    {
-      icon: 'star',
-      title: 'Premium Avantajları',
-      description: 'Belirli sayıda davet sonrası premium özellikler',
+      titleKey: 'invite.benefits.xp.title',
+      descKey: 'invite.benefits.xp.desc',
     },
   ];
 
@@ -77,11 +73,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back-outline"
-            size={24}
-            color={theme.colors.text.primary}
-          />
+          <BackButton width={28} height={28} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text
           style={[
@@ -92,7 +84,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
             },
           ]}
         >
-          {t('settings.inviteFriend')}
+          {t('invite.title')}
         </Text>
         <View style={styles.headerPlaceholder} />
       </View>
@@ -102,18 +94,18 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero Section */}
-        <Card variant="elevated" padding="large" style={styles.heroCard}>
+        <Card variant="elevated" padding="large" style={[styles.heroCard, { backgroundColor: theme.colors.background.paper }]}>
           <View style={styles.heroContent}>
             <View
               style={[
                 styles.iconContainer,
-                { backgroundColor: theme.colors.primary.light + '20' },
+                { backgroundColor: 'rgba(13, 156, 221, 0.1)' },
               ]}
             >
               <Ionicons
-                name="person-add"
+                name="people-outline"
                 size={48}
-                color={theme.colors.primary.main}
+                color="#0d9cdd"
               />
             </View>
             <Text
@@ -125,7 +117,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
                 },
               ]}
             >
-              Arkadaşını Davet Et
+              {t('invite.title')}
             </Text>
             <Text
               style={[
@@ -136,14 +128,13 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
                 },
               ]}
             >
-              Arkadaşlarını davet ederek hem onlara hem de kendine avantajlar
-              sağla!
+              {t('invite.subtitle')}
             </Text>
           </View>
         </Card>
 
         {/* Referral Code */}
-        <Card variant="default" padding="large" style={styles.codeCard}>
+        <Card variant="default" padding="large" style={[styles.codeCard, { backgroundColor: theme.colors.background.paper }]}>
           <Text
             style={[
               styles.codeLabel,
@@ -153,7 +144,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
               },
             ]}
           >
-            Referans Kodun
+            {t('invite.referralCode')}
           </Text>
           <TouchableOpacity
             onPress={handleCopyCode}
@@ -161,7 +152,8 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
               styles.codeContainer,
               {
                 backgroundColor: theme.colors.background.light,
-                borderColor: theme.colors.border.light,
+                borderColor: '#0d9cdd',
+                borderWidth: 1,
               },
             ]}
           >
@@ -177,12 +169,12 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
               {referralCode}
             </Text>
             <Ionicons
-              name={copied ? 'checkmark' : 'copy-outline'}
+              name={copied ? 'checkmark-circle' : 'copy-outline'}
               size={20}
               color={
                 copied
-                  ? theme.colors.success.main
-                  : theme.colors.text.secondary
+                  ? '#4CAF50'
+                  : '#0d9cdd'
               }
             />
           </TouchableOpacity>
@@ -199,25 +191,25 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
               },
             ]}
           >
-            Avantajlar
+            {t('invite.benefits.title')}
           </Text>
           {benefits.map((benefit, index) => (
             <Card
               key={index}
               variant="default"
               padding="medium"
-              style={styles.benefitCard}
+              style={[styles.benefitCard, { backgroundColor: theme.colors.background.paper }]}
             >
               <View
                 style={[
                   styles.benefitIconContainer,
-                  { backgroundColor: theme.colors.primary.light + '20' },
+                  { backgroundColor: 'rgba(13, 156, 221, 0.1)' },
                 ]}
               >
                 <Ionicons
                   name={benefit.icon as any}
                   size={24}
-                  color={theme.colors.primary.main}
+                  color="#0d9cdd"
                 />
               </View>
               <View style={styles.benefitContent}>
@@ -230,7 +222,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
                     },
                   ]}
                 >
-                  {benefit.title}
+                  {t(benefit.titleKey)}
                 </Text>
                 <Text
                   style={[
@@ -241,7 +233,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
                     },
                   ]}
                 >
-                  {benefit.description}
+                  {t(benefit.descKey)}
                 </Text>
               </View>
             </Card>
@@ -250,7 +242,7 @@ const InviteFriendScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Share Button */}
         <Button
-          title="Arkadaşını Davet Et"
+          title={t('invite.shareButton')}
           onPress={handleShare}
           variant="primary"
           size="large"
@@ -271,21 +263,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: 20,
     paddingBottom: 16,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   headerPlaceholder: {
-    width: 40,
+    width: 28,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -371,6 +363,7 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     marginTop: 8,
+    backgroundColor: '#0d9cdd',
   },
 });
 

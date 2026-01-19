@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/useTheme';
+import { authAPI } from '../../services/api';
 
 interface LeaderboardUser {
   id: string;
@@ -22,27 +22,52 @@ interface LeaderboardUser {
   name: string;
   avatar?: string;
   points: number;
+  isCurrentUser?: boolean;
 }
 
 const LeaderboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const theme = useTheme();
   const { t } = useTranslation();
-  const [selectedPeriod, setSelectedPeriod] =
-    useState<'weekly' | 'monthly' | 'alltime'>('weekly');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [currentUserName, setCurrentUserName] = useState<string>('');
+  const [currentUserRank] = useState<number>(450);
+  const [currentUserPoints] = useState<number>(320);
+
+  // Kullanıcı bilgilerini yükle
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const user = await authAPI.getCurrentUser().catch(() => null);
+        if (user && user.username) {
+          setCurrentUserName(user.username);
+        }
+      } catch (error) {
+        console.error('Error loading current user:', error);
+      }
+    };
+    loadCurrentUser();
+  }, []);
 
   // Şimdilik mock veri – backend hazır olduğunda API'den gelecek
-  const allUsers: LeaderboardUser[] = [
-    { id: '1', rank: 1, name: 'Andrew', points: 872 },
-    { id: '2', rank: 2, name: 'Maryland', points: 948 },
-    { id: '3', rank: 3, name: 'Charlotte', points: 769 },
-    { id: '4', rank: 4, name: 'Florencio Doll...', points: 723 },
-    { id: '5', rank: 5, name: 'Roselle Ehram', points: 640 },
-    { id: '6', rank: 6, name: 'Darron Kulino...', points: 596 },
-    { id: '7', rank: 7, name: 'Clinton Mcclure', points: 537 },
-  ];
+  // İlk 20 kişi için mock veri
+  const generateMockUsers = (count: number, startRank: number): LeaderboardUser[] => {
+    const names = [
+      'Andrew', 'Maryland', 'Charlotte', 'Florencio', 'Roselle', 'Darron', 'Clinton',
+      'John', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Daniel', 'Lisa',
+      'Robert', 'Amanda', 'James', 'Michelle', 'William', 'Jennifer', 'Richard',
+      'Nicole', 'Joseph', 'Ashley', 'Thomas', 'Stephanie', 'Christopher', 'Melissa'
+    ];
+    return Array.from({ length: count }, (_, i) => ({
+      id: `user-${startRank + i}`,
+      rank: startRank + i,
+      name: names[(startRank + i - 1) % names.length] || `User ${startRank + i}`,
+      points: Math.floor(Math.random() * 500) + 400,
+    }));
+  };
+
+  const allUsers: LeaderboardUser[] = generateMockUsers(20, 1);
 
   // Arama filtresi
   const filteredUsers = useMemo(() => {
@@ -55,14 +80,26 @@ const LeaderboardScreen: React.FC = () => {
     );
   }, [searchQuery, allUsers]);
 
-  const topThree = filteredUsers.slice(0, 3);
-  const listData = filteredUsers.slice(3);
+  // Arama yapılıyorsa tüm sonuçları göster, yoksa normal görünüm
+  const isSearching = searchQuery.trim().length > 0;
+  
+  const topThree = isSearching ? [] : filteredUsers.slice(0, 3);
+  // İlk 20 kişi (top 3 podium'da, kalan 17 kişi listede - rank 4-20)
+  const first20Users = isSearching ? filteredUsers : filteredUsers.slice(3, 21);
+  
+  // Kullanıcının kendi sırası için özel item (eğer ilk 20'de değilse ve arama yapılmıyorsa)
+  const currentUserItem: LeaderboardUser | null = !isSearching && currentUserRank > 20 ? {
+    id: 'current-user',
+    rank: currentUserRank,
+    name: currentUserName || t('leaderboard.you'),
+    points: currentUserPoints,
+    isCurrentUser: true,
+  } : null;
 
-  const periods = [
-    { key: 'weekly' as const, label: t('leaderboard.weekly') },
-    { key: 'monthly' as const, label: t('leaderboard.monthly') },
-    { key: 'alltime' as const, label: t('leaderboard.allTime') },
-  ];
+  // List data: Arama yapılıyorsa tüm sonuçlar, yoksa ilk 20'den kalanlar + kullanıcının kendi sırası
+  const listData = isSearching 
+    ? filteredUsers 
+    : (currentUserItem ? [...first20Users, currentUserItem] : first20Users);
 
   const renderListItem = ({
     item,
@@ -71,21 +108,42 @@ const LeaderboardScreen: React.FC = () => {
     item: LeaderboardUser;
     index: number;
   }) => {
-    const isLast = index === listData.length - 1;
+    const isCurrentUser = item.isCurrentUser || false;
+    const isSeparatorBefore = isCurrentUser && index > 0;
 
     return (
       <View>
+        {isSeparatorBefore && (
+          <View style={styles.separatorContainer}>
+            <View style={[styles.separatorLine, { backgroundColor: theme.colors.border.light }]} />
+            <Text style={[styles.separatorText, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.medium }]}>
+              {t('leaderboard.yourRank')}
+            </Text>
+            <View style={[styles.separatorLine, { backgroundColor: theme.colors.border.light }]} />
+          </View>
+        )}
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('App', {
-              screen: 'PeopleProfileDetails',
-              params: { userId: item.id },
-            })
-          }
+          onPress={() => {
+            if (!isCurrentUser) {
+              navigation.navigate('App', {
+                screen: 'PeopleProfileDetails',
+                params: { userId: item.id },
+              });
+            }
+          }}
           activeOpacity={0.8}
-          style={styles.listItem}
+          style={[
+            styles.listItem, 
+            { 
+              backgroundColor: isCurrentUser 
+                ? 'rgba(13, 156, 221, 0.1)' 
+                : theme.colors.background.paper,
+              borderWidth: isCurrentUser ? 2 : 0,
+              borderColor: isCurrentUser ? '#0d9cdd' : 'transparent',
+            }
+          ]}
         >
-          <Text style={[styles.listRank, { color: theme.colors.grey[800] }]}>
+          <Text style={[styles.listRank, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.bold }]}>
             {item.rank}
           </Text>
 
@@ -93,20 +151,23 @@ const LeaderboardScreen: React.FC = () => {
             <View
               style={[
                 styles.listAvatar,
-                { backgroundColor: theme.colors.primary.light + '20' },
+                { backgroundColor: isCurrentUser ? '#0d9cdd' : 'rgba(13, 156, 221, 0.1)' },
               ]}
             >
               <Text
                 style={[
                   styles.listAvatarText,
-                  { color: theme.colors.primary.main },
+                  { 
+                    color: isCurrentUser ? '#FFFFFF' : '#0d9cdd', 
+                    fontFamily: theme.typography.fontFamily.bold 
+                  },
                 ]}
               >
                 {item.name.charAt(0).toUpperCase()}
               </Text>
             </View>
             <Text
-              style={[styles.listName, { color: theme.colors.grey[900] }]}
+              style={[styles.listName, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.medium }]}
               numberOfLines={1}
             >
               {item.name}
@@ -114,30 +175,18 @@ const LeaderboardScreen: React.FC = () => {
           </View>
 
           <Text
-            style={[styles.listPoints, { color: theme.colors.grey[900] }]}
+            style={[styles.listPoints, { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily.semiBold }]}
           >
             {item.points} XP
           </Text>
         </TouchableOpacity>
-        {!isLast && (
-          <View
-            style={[styles.divider, { backgroundColor: theme.colors.grey[200] }]}
-          />
-        )}
       </View>
     );
   };
 
-  const gradient = theme.gradients.purple;
-
   return (
-    <LinearGradient
-      colors={gradient.colors}
-      start={gradient.start}
-      end={gradient.end}
-      style={styles.gradient}
-    >
-      <SafeAreaView style={styles.container} edges={['top']}>
+    <>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#0d9cdd' }]} edges={['top']}>
         <FlatList
           data={listData}
           keyExtractor={item => item.id}
@@ -150,16 +199,16 @@ const LeaderboardScreen: React.FC = () => {
                 <View style={styles.headerLeft}>
                   <View style={styles.logoBox}>
                     <Ionicons
-                      name="happy-outline"
+                      name="trophy-outline"
                       size={18}
-                      color={theme.colors.primary.main}
+                      color="#0d9cdd"
                     />
                   </View>
                   <Text
                     style={[
                       styles.headerTitle,
                       {
-                        color: theme.colors.text.white,
+                        color: '#FFFFFF',
                         fontFamily: theme.typography.fontFamily.bold,
                       },
                     ]}
@@ -173,49 +222,15 @@ const LeaderboardScreen: React.FC = () => {
                   onPress={() => setIsSearchVisible(true)}
                 >
                   <Ionicons
-                    name="search"
+                    name="search-outline"
                     size={22}
-                    color={theme.colors.text.white}
+                    color="#FFFFFF"
                   />
                 </TouchableOpacity>
               </View>
 
-              {/* Period chips */}
-              <View style={styles.chipRow}>
-                {periods.map(period => {
-                  const isActive = selectedPeriod === period.key;
-                  return (
-                    <TouchableOpacity
-                      key={period.key}
-                      activeOpacity={0.9}
-                      onPress={() => setSelectedPeriod(period.key)}
-                      style={[
-                        styles.chip,
-                        isActive
-                          ? styles.chipActive
-                          : styles.chipInactive,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          {
-                            color: isActive
-                              ? theme.colors.primary.main
-                              : theme.colors.text.white,
-                            fontFamily:
-                              theme.typography.fontFamily.bold,
-                          },
-                        ]}
-                      >
-                        {period.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Top 3 podium */}
+              {/* Top 3 podium - sadece arama yapılmadığında göster */}
+              {!isSearching && (
               <View style={styles.podiumWrapper}>
                 <View style={styles.podiumBackground} />
 
@@ -251,14 +266,9 @@ const LeaderboardScreen: React.FC = () => {
                       </Text>
                     </View>
                     <View style={[styles.podiumBlock, styles.podiumBlockSecond]}>
-                      <LinearGradient
-                        colors={['#8F7EF4', '#6F5ED4', '#5F4EC4']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={styles.podiumBlockInner}
-                      >
+                      <View style={[styles.podiumBlockInner, { backgroundColor: '#0d9cdd' }]}>
                         <Text style={styles.podiumBlockText}>2</Text>
-                      </LinearGradient>
+                      </View>
                     </View>
                   </TouchableOpacity>
 
@@ -293,14 +303,9 @@ const LeaderboardScreen: React.FC = () => {
                       </Text>
                     </View>
                     <View style={[styles.podiumBlock, styles.podiumBlockFirst]}>
-                      <LinearGradient
-                        colors={['#9B8AFF', '#7B6AEF', '#6B5ADF']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={styles.podiumBlockInner}
-                      >
+                      <View style={[styles.podiumBlockInner, { backgroundColor: '#0d9cdd' }]}>
                         <Text style={styles.podiumBlockText}>1</Text>
-                      </LinearGradient>
+                      </View>
                     </View>
                   </TouchableOpacity>
 
@@ -337,23 +342,15 @@ const LeaderboardScreen: React.FC = () => {
                     <View
                       style={[styles.podiumBlock, styles.podiumBlockThird]}
                     >
-                      <LinearGradient
-                        colors={['#8F7EF4', '#6F5ED4', '#5F4EC4']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={styles.podiumBlockInner}
-                      >
+                      <View style={[styles.podiumBlockInner, { backgroundColor: '#0d9cdd' }]}>
                         <Text style={styles.podiumBlockText}>3</Text>
-                      </LinearGradient>
+                      </View>
                     </View>
                   </TouchableOpacity>
                 </View>
               </View>
+              )}
 
-              {/* List container header */}
-              <View style={styles.listContainer}>
-                {/* boş – satırlar renderItem ile gelecek */}
-              </View>
             </>
           }
         />
@@ -366,13 +363,15 @@ const LeaderboardScreen: React.FC = () => {
         animationType="slide"
         onRequestClose={() => setIsSearchVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <SafeAreaView style={styles.modalOverlay} edges={['top']}>
           <View style={[styles.modalContent, { backgroundColor: theme.colors.background.default }]}>
             <View style={styles.searchHeader}>
               <TextInput
                 style={[styles.searchInput, { 
                   color: theme.colors.text.primary,
-                  borderColor: theme.colors.border.light,
+                  borderColor: '#0d9cdd',
+                  borderWidth: 1,
+                  fontFamily: theme.typography.fontFamily.regular,
                 }]}
                 placeholder={t('common.search')}
                 placeholderTextColor={theme.colors.text.secondary}
@@ -390,22 +389,29 @@ const LeaderboardScreen: React.FC = () => {
                 <Ionicons name="close" size={24} color={theme.colors.text.primary} />
               </TouchableOpacity>
             </View>
+            {searchQuery.trim().length > 0 && (
+              <FlatList
+                data={filteredUsers}
+                keyExtractor={item => item.id}
+                renderItem={renderListItem}
+                contentContainerStyle={styles.searchResultsContent}
+                style={styles.searchResultsList}
+              />
+            )}
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
-    </LinearGradient>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
   listContent: {
     paddingHorizontal: 24,
+    paddingTop: 24,
     paddingBottom: 24,
   },
   header: {
@@ -449,31 +455,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  chipRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  chip: {
-    flex: 1,
-    paddingVertical: 10,
-    marginHorizontal: 4,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: {
-    backgroundColor: '#FFFFFF',
-  },
-  chipInactive: {
-    backgroundColor: 'transparent',
-  },
-  chipText: {
-    fontSize: 18,
-  },
   podiumWrapper: {
     marginBottom: 32,
   },
@@ -513,7 +494,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     fontSize: 28,
-    color: '#6949FF',
+    color: '#0d9cdd',
     fontWeight: '700',
   },
   rankBadge: {
@@ -557,7 +538,7 @@ const styles = StyleSheet.create({
   xpChipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6949FF',
+    color: '#0d9cdd',
   },
   podiumBlock: {
     width: '80%',
@@ -581,15 +562,12 @@ const styles = StyleSheet.create({
   },
   podiumBlockFirst: {
     height: 200,
-    backgroundColor: '#8B7AFF',
   },
   podiumBlockSecond: {
     height: 170,
-    backgroundColor: '#7F6BF4',
   },
   podiumBlockThird: {
     height: 150,
-    backgroundColor: '#7F6BF4',
   },
   podiumBlockInner: {
     width: '100%',
@@ -608,24 +586,20 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
-  listContainer: {
-    marginTop: 24,
-    marginBottom: 12,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: '#FAFAFA',
-    height: 0,
-  },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
   },
   listRank: {
-    width: 32,
+    minWidth: 40,
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
+    paddingHorizontal: 4,
   },
   listCenter: {
     flex: 1,
@@ -656,19 +630,41 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
   },
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    paddingHorizontal: 16,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+  },
+  separatorText: {
+    marginHorizontal: 12,
+    fontSize: 14,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-start',
-    paddingTop: 100,
+    zIndex: 1000,
+    elevation: 1000,
   },
   modalContent: {
+    flex: 1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
     paddingHorizontal: 24,
     paddingBottom: 40,
-    minHeight: 200,
+  },
+  searchResultsList: {
+    flex: 1,
+    marginTop: 16,
+  },
+  searchResultsContent: {
+    paddingBottom: 24,
   },
   searchHeader: {
     flexDirection: 'row',
@@ -678,11 +674,9 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 48,
-    borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    fontFamily: 'Nunito-Regular',
   },
   closeButton: {
     width: 48,
