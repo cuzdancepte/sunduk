@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/useTheme';
 import HomeScreen from '../screens/HomeScreen';
 import LeaderboardScreen from '../screens/leaderboard/LeaderboardScreen';
-import DialogScreen from '../screens/DialogScreen';
+import DialogPathScreen from '../screens/dialog/DialogPathScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CustomTabBar from '../components/CustomTabBar';
 
@@ -43,7 +43,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Dialog"
-        component={DialogScreen}
+        component={DialogPathScreen}
       />
       <Tab.Screen
         name="Profile"

@@ -5,9 +5,11 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { contentAPI } from '../services/api';
 import { Dialog } from '../types';
 import { useTheme } from '../theme/useTheme';
@@ -15,6 +17,7 @@ import { Card, EmptyState, LoadingSpinner, Badge } from '../components/ui';
 
 const DialogScreen = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const [dialogs, setDialogs] = useState<Dialog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,9 +66,9 @@ const DialogScreen = () => {
         activeOpacity={0.7}
       >
         <Card
-          variant="elevated"
+          variant="default"
           padding="large"
-          style={{ marginBottom: theme.spacing.md }}
+          style={[styles.dialogCard, { backgroundColor: theme.colors.background.paper, marginBottom: 12 }]}
         >
           <View style={styles.dialogHeader}>
             <Text
@@ -81,7 +84,7 @@ const DialogScreen = () => {
             </Text>
             {!dialog.isFree && (
               <Badge
-                label="Premium"
+                label={t('premium.title')}
                 variant="warning"
                 size="small"
               />
@@ -110,7 +113,7 @@ const DialogScreen = () => {
                 },
               ]}
             >
-              {characterCount} karakter • {messageCount} mesaj
+              {characterCount} {t('dialog.character')} • {messageCount} {t('dialog.message')}
             </Text>
           </View>
         </Card>
@@ -120,79 +123,85 @@ const DialogScreen = () => {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
-        <View
-          style={[
-            styles.header,
-            {
-              backgroundColor: theme.colors.background.default,
-              borderBottomColor: theme.colors.border.light,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.headerTitle,
-              {
-                color: theme.colors.text.primary,
-                fontFamily: theme.typography.fontFamily.bold,
-              },
-            ]}
-          >
-            Dialog
-          </Text>
-          <Text
-            style={[
-              styles.headerSubtitle,
-              {
-                color: theme.colors.text.secondary,
-                fontFamily: theme.typography.fontFamily.regular,
-              },
-            ]}
-          >
-            Konuşma pratiği
-          </Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background.default }]} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.logoBox}>
+              <Ionicons
+                name="chatbubbles-outline"
+                size={18}
+                color="#0d9cdd"
+              />
+            </View>
+            <View>
+              <Text
+                style={[
+                  styles.headerTitle,
+                  {
+                    color: theme.colors.text.primary,
+                    fontFamily: theme.typography.fontFamily.bold,
+                  },
+                ]}
+              >
+                {t('dialog.title')}
+              </Text>
+              <Text
+                style={[
+                  styles.headerSubtitle,
+                  {
+                    color: theme.colors.text.secondary,
+                    fontFamily: theme.typography.fontFamily.regular,
+                  },
+                ]}
+              >
+                {t('dialog.subtitle')}
+              </Text>
+            </View>
+          </View>
         </View>
         <View style={styles.loadingContainer}>
-          <LoadingSpinner />
+          <LoadingSpinner fullScreen text={t('common.loading')} />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.background.default,
-            borderBottomColor: theme.colors.border.light,
-          },
-        ]}
-      >
-        <Text
-          style={[
-            styles.headerTitle,
-            {
-              color: theme.colors.text.primary,
-              fontFamily: theme.typography.fontFamily.bold,
-            },
-          ]}
-        >
-          Dialog
-        </Text>
-        <Text
-          style={[
-            styles.headerSubtitle,
-            {
-              color: theme.colors.text.secondary,
-              fontFamily: theme.typography.fontFamily.regular,
-            },
-          ]}
-        >
-          Konuşma pratiği
-        </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background.default }]} edges={['top']}>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={styles.logoBox}>
+            <Ionicons
+              name="chatbubbles-outline"
+              size={18}
+              color="#0d9cdd"
+            />
+          </View>
+          <View>
+            <Text
+              style={[
+                styles.headerTitle,
+                {
+                  color: theme.colors.text.primary,
+                  fontFamily: theme.typography.fontFamily.bold,
+                },
+              ]}
+            >
+              {t('dialog.title')}
+            </Text>
+            <Text
+              style={[
+                styles.headerSubtitle,
+                {
+                  color: theme.colors.text.secondary,
+                  fontFamily: theme.typography.fontFamily.regular,
+                },
+              ]}
+            >
+              {t('dialog.subtitle')}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {dialogs.length > 0 ? (
@@ -200,21 +209,18 @@ const DialogScreen = () => {
           data={dialogs}
           renderItem={renderDialog}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.list,
-            { padding: theme.spacing.lg },
-          ]}
+          contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />
       ) : (
         <View style={styles.emptyContainer}>
           <EmptyState
-            title="Henüz dialog yok"
-            description="Yakında dialog içerikleri eklenecek"
+            title={t('dialog.emptyTitle')}
+            description={t('dialog.emptyDescription')}
           />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -223,16 +229,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    borderBottomWidth: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#0d9cdd',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    flexShrink: 0,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
+    marginTop: 2,
   },
   loadingContainer: {
     flex: 1,
@@ -240,7 +263,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
-    // Padding handled inline with theme
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
   },
   emptyContainer: {
     flex: 1,
@@ -252,6 +277,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  dialogCard: {
+    borderRadius: 12,
   },
   dialogTitle: {
     fontSize: 18,

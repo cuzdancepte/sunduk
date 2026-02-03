@@ -178,6 +178,7 @@ export interface Dialog {
   levelId?: string | null;
   order: number;
   isFree: boolean;
+  status?: 'locked' | 'current' | 'completed';
   translations?: DialogTranslation[];
   characters?: DialogCharacter[];
   messages?: DialogMessage[];

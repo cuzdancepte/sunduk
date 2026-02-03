@@ -93,7 +93,7 @@ const AppStack = () => {
       <Stack.Screen
         name="DialogDetail"
         component={DialogDetailScreen}
-        options={{ title: 'Dialog' }}
+        options={{ title: 'Dialog', headerShown: false }}
       />
       <Stack.Screen
         name="Settings"

@@ -7,19 +7,25 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  SafeAreaView,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
+import { addCompletedDialog } from '../services/dialogProgress';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { AppStackParamList } from '../navigation/AppStack';
 import { contentAPI } from '../services/api';
 import { Dialog, DialogMessage, DialogQuestion } from '../types';
 import { useTheme } from '../theme/useTheme';
 import { Card, Button, LoadingSpinner, EmptyState } from '../components/ui';
+import BackButton from '../components/BackButton';
 
 type RoutePropType = RouteProp<AppStackParamList, 'DialogDetail'>;
 
 const DialogDetailScreen = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const route = useRoute<RoutePropType>();
   const navigation = useNavigation<any>();
   const { dialogId } = route.params;
@@ -42,7 +48,7 @@ const DialogDetailScreen = () => {
       const data = await contentAPI.getDialog(dialogId);
       setDialog(data);
     } catch (error: any) {
-      Alert.alert('Hata', error.response?.data?.error || 'Dialog yüklenemedi');
+      Alert.alert(t('common.error'), error.response?.data?.error || t('dialog.loadError'));
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -112,33 +118,87 @@ const DialogDetailScreen = () => {
     const totalCount = dialog.questions.length;
 
     dialog.questions.forEach((question) => {
-      const selected = selectedOptions[question.id];
-      if (selected === question.correctAnswer) {
+      const selectedOptionId = selectedOptions[question.id];
+      
+      // Seçilen option'ın text'ini bul
+      const selectedOption = question.options?.find(opt => opt.id === selectedOptionId);
+      const selectedText = selectedOption?.translations?.[0]?.optionText || '';
+      
+      // Doğru cevap ile karşılaştır
+      if (selectedText === question.correctAnswer) {
         correctCount++;
       }
     });
 
     const score = (correctCount / totalCount) * 100;
     Alert.alert(
-      'Sonuç',
-      `Doğru: ${correctCount}/${totalCount}\nPuan: ${score.toFixed(0)}%`,
-      [{ text: 'Tamam' }]
+      t('dialog.result'),
+      t('dialog.resultMessage', { correct: correctCount, total: totalCount, score: score.toFixed(0) }),
+      [
+        {
+          text: t('common.confirm'),
+          onPress: async () => {
+            await addCompletedDialog(dialogId);
+            navigation.goBack();
+          },
+        },
+      ]
     );
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
-        <LoadingSpinner />
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#0d9cdd' }]} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <BackButton width={28} height={28} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text
+            style={[
+              styles.headerTitle,
+              {
+                color: '#FFFFFF',
+                fontFamily: theme.typography.fontFamily.bold,
+              },
+            ]}
+          >
+            {t('dialog.title')}
+          </Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
+        <LoadingSpinner fullScreen text={t('common.loading')} />
+      </SafeAreaView>
     );
   }
 
   if (!dialog) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
-        <EmptyState title="Dialog bulunamadı" description="Dialog yüklenemedi" />
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#0d9cdd' }]} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <BackButton width={28} height={28} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text
+            style={[
+              styles.headerTitle,
+              {
+                color: '#FFFFFF',
+                fontFamily: theme.typography.fontFamily.bold,
+              },
+            ]}
+          >
+            {t('dialog.title')}
+          </Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
+        <EmptyState title={t('dialog.notFound')} description={t('dialog.loadError')} />
+      </SafeAreaView>
     );
   }
 
@@ -204,8 +264,8 @@ const DialogDetailScreen = () => {
                   resizeMode="cover"
                 />
               ) : (
-                <View style={[styles.messageAvatar, styles.avatarPlaceholder, { backgroundColor: theme.colors.primary.main }]}>
-                  <Text style={[styles.avatarPlaceholderText, { color: theme.colors.primary.contrast }]}>
+                <View style={[styles.messageAvatar, styles.avatarPlaceholder, { backgroundColor: '#0d9cdd' }]}>
+                  <Text style={[styles.avatarPlaceholderText, { color: '#FFFFFF' }]}>
                     {characterName.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -222,7 +282,7 @@ const DialogDetailScreen = () => {
           ]}
         >
           {characterSide === 'left' && showAvatar && (
-            <Text style={[styles.messageSender, { color: theme.colors.primary.main }]}>
+            <Text style={[styles.messageSender, { color: '#0d9cdd', fontFamily: theme.typography.fontFamily.semiBold }]}>
               {characterName}
             </Text>
           )}
@@ -286,7 +346,29 @@ const DialogDetailScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background.light }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#0d9cdd' }]} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <BackButton width={28} height={28} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text
+          style={[
+            styles.headerTitle,
+            {
+              color: '#FFFFFF',
+              fontFamily: theme.typography.fontFamily.bold,
+            },
+          ]}
+        >
+          {translation?.title || t('dialog.title')}
+        </Text>
+        <View style={styles.headerPlaceholder} />
+      </View>
+
       {/* Dialog Messages - WhatsApp Style */}
       {!showQuestions && dialog?.messages && dialog.messages.length > 0 && (
         <View style={{ flex: 1, position: 'relative' }}>
@@ -300,19 +382,19 @@ const DialogDetailScreen = () => {
             
             {/* Dialog sonunda sorular için prompt */}
             {dialog.questions && dialog.questions.length > 0 && (
-              <View style={styles.endOfDialogPrompt}>
-                <Text style={[styles.endOfDialogText, { color: theme.colors.text.secondary }]}>
-                  Dialog tamamlandı!
+              <View style={[styles.endOfDialogPrompt, { backgroundColor: theme.colors.background.paper }]}>
+                <Text style={[styles.endOfDialogText, { color: theme.colors.text.secondary, fontFamily: theme.typography.fontFamily.medium }]}>
+                  {t('dialog.completed')}
                 </Text>
                 <TouchableOpacity
                   onPress={handleShowQuestions}
                   style={[styles.inlineQuestionsButton, {
-                    backgroundColor: theme.colors.primary.main,
+                    backgroundColor: '#0d9cdd',
                     marginTop: 12,
                   }]}
                 >
-                  <Text style={[styles.inlineQuestionsButtonText, { color: theme.colors.primary.contrast }]}>
-                    Sorulara Geç ▶
+                  <Text style={[styles.inlineQuestionsButtonText, { color: '#FFFFFF', fontFamily: theme.typography.fontFamily.semiBold }]}>
+                    {t('dialog.goToQuestions')} <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -341,7 +423,7 @@ const DialogDetailScreen = () => {
                 },
               ]}
             >
-              Sorular
+              {t('dialog.questions')}
             </Text>
             {dialog.questions.map((question: DialogQuestion, index: number) => {
             const prompt = question.prompts?.[0];
@@ -402,9 +484,10 @@ const DialogDetailScreen = () => {
                             styles.optionButton,
                             {
                               backgroundColor: isSelected
-                                ? theme.colors.primary.main
-                                : theme.colors.background.default,
-                              borderColor: theme.colors.border.light,
+                                ? '#0d9cdd'
+                                : theme.colors.background.paper,
+                              borderColor: isSelected ? '#0d9cdd' : theme.colors.border.light,
+                              borderWidth: isSelected ? 2 : 1,
                             },
                           ]}
                         >
@@ -413,9 +496,11 @@ const DialogDetailScreen = () => {
                               styles.optionText,
                               {
                                 color: isSelected
-                                  ? theme.colors.primary.contrast
+                                  ? '#FFFFFF'
                                   : theme.colors.text.primary,
-                                fontFamily: theme.typography.fontFamily.regular,
+                                fontFamily: isSelected 
+                                  ? theme.typography.fontFamily.semiBold
+                                  : theme.typography.fontFamily.regular,
                               },
                             ]}
                           >
@@ -437,10 +522,11 @@ const DialogDetailScreen = () => {
             borderTopColor: theme.colors.border.light,
           }]}>
             <Button
-              title="Soruları Tamamla"
+              title={t('dialog.completeQuestions')}
               onPress={handleSubmitQuestions}
               variant="primary"
               fullWidth={true}
+              style={{ backgroundColor: '#0d9cdd' }}
             />
           </View>
         </>
@@ -449,12 +535,12 @@ const DialogDetailScreen = () => {
       {showQuestions && (!dialog.questions || dialog.questions.length === 0) && (
         <View style={[styles.content, { padding: theme.spacing.lg }]}>
           <EmptyState
-            title="Bu dialog için soru yok"
-            description="Sorular yakında eklenecek"
+            title={t('dialog.noQuestions')}
+            description={t('dialog.questionsComingSoon')}
           />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -463,24 +549,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: '#0d9cdd',
   },
-  title: {
-    fontSize: 28,
+  backButton: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 12,
+    flex: 1,
+    textAlign: 'center',
   },
-  description: {
-    fontSize: 16,
-    marginBottom: 8,
-    lineHeight: 22,
-  },
-  scenario: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    marginTop: 4,
-    lineHeight: 20,
+  headerPlaceholder: {
+    width: 28,
   },
   content: {
     // Padding handled inline with theme
@@ -532,18 +622,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   userBubble: {
-    backgroundColor: '#DCF8C6', // WhatsApp yeşil tonu
+    backgroundColor: '#DCF8C6',
     borderBottomRightRadius: 4,
   },
   messageSender: {
     fontSize: 12,
-    fontWeight: '600',
     marginBottom: 4,
   },
   messageText: {
     fontSize: 15,
     lineHeight: 20,
     color: '#000000',
+    fontFamily: 'Nunito-Regular',
   },
   messageFooter: {
     flexDirection: 'row',
@@ -598,16 +688,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   inlineQuestionsButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    minWidth: 140,
+    minWidth: 160,
+    flexDirection: 'row',
+    gap: 8,
   },
   inlineQuestionsButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   questionsContainer: {
@@ -616,8 +708,7 @@ const styles = StyleSheet.create({
   endOfDialogPrompt: {
     marginTop: 20,
     marginBottom: 20,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: 20,
     borderRadius: 12,
     alignItems: 'center',
   },
