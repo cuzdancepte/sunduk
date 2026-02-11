@@ -132,6 +132,7 @@
     "questionsComingSoon": "Sorular yakında eklenecek",
     "result": "Sonuç",
     "resultMessage": "Doğru: {{correct}}/{{total}}\nPuan: {{score}}%",
+    "resultMessageRetry": "Doğru: {{correct}}/{{total}}\nPuan: {{score}}%\n\nTüm soruları doğru cevaplayarak tekrar deneyin.",
     "pathTitle": "Dialog Yolu",
     "loadMore": "Devam Et",
     "loadMoreDialogs": "{{count}} dialog daha",

@@ -132,6 +132,7 @@
     "questionsComingSoon": "Questions will be added soon",
     "result": "Result",
     "resultMessage": "Correct: {{correct}}/{{total}}\nScore: {{score}}%",
+    "resultMessageRetry": "Correct: {{correct}}/{{total}}\nScore: {{score}}%\n\nPlease answer all questions correctly to proceed.",
     "pathTitle": "Dialog Path",
     "loadMore": "Continue",
     "loadMoreDialogs": "{{count}} more dialogs",

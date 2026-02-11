@@ -132,6 +132,7 @@
     "questionsComingSoon": "Вопросы будут добавлены в ближайшее время",
     "result": "Результат",
     "resultMessage": "Правильно: {{correct}}/{{total}}\nОценка: {{score}}%",
+    "resultMessageRetry": "Правильно: {{correct}}/{{total}}\nОценка: {{score}}%\n\nОтветьте правильно на все вопросы, чтобы продолжить.",
     "pathTitle": "Путь диалогов",
     "loadMore": "Продолжить",
     "loadMoreDialogs": "Ещё {{count}} диалогов",

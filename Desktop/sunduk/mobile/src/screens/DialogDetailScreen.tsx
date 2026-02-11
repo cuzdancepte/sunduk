@@ -131,19 +131,36 @@ const DialogDetailScreen = () => {
     });
 
     const score = (correctCount / totalCount) * 100;
-    Alert.alert(
-      t('dialog.result'),
-      t('dialog.resultMessage', { correct: correctCount, total: totalCount, score: score.toFixed(0) }),
-      [
-        {
-          text: t('common.confirm'),
-          onPress: async () => {
-            await addCompletedDialog(dialogId);
-            navigation.goBack();
+    const isSuccess = correctCount === totalCount;
+
+    if (isSuccess) {
+      Alert.alert(
+        t('dialog.result'),
+        t('dialog.resultMessage', { correct: correctCount, total: totalCount, score: score.toFixed(0) }),
+        [
+          {
+            text: t('common.confirm'),
+            onPress: async () => {
+              await addCompletedDialog(dialogId);
+              navigation.goBack();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } else {
+      Alert.alert(
+        t('dialog.result'),
+        t('dialog.resultMessageRetry', { correct: correctCount, total: totalCount, score: score.toFixed(0) }),
+        [
+          {
+            text: t('common.confirm'),
+            onPress: () => {
+              // Yanlış cevap - sayfada kal, tekrar denesin
+            },
+          },
+        ]
+      );
+    }
   };
 
   if (loading) {
