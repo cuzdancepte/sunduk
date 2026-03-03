@@ -52,7 +52,11 @@
     }
   },
   "home": {
-    "title": "Home"
+    "title": "Home",
+    "congratulations": "Congratulations!",
+    "allUnitsCompleted": "You've completed all units",
+    "emptyDescription": "No units available yet.",
+    "loadError": "Failed to load data"
   },
   "profile": {
     "title": "My Account",

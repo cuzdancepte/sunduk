@@ -71,18 +71,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  if (isLoading) {
-    return null;
-  }
+  // Context'i her zaman sağla - loading sırasında bile (çökme önlemi)
+  const value = {
+    theme: createTheme(isDarkMode),
+    isDarkMode,
+    toggleDarkMode,
+  };
 
   return (
-    <ThemeContext.Provider
-      value={{
-        theme: createTheme(isDarkMode),
-        isDarkMode,
-        toggleDarkMode,
-      }}
-    >
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

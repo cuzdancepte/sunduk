@@ -1,0 +1,24 @@
+<svg width="400" height="280" viewBox="0 0 400 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M200 0C180 50 120 100 150 160C170 200 240 220 280 280" stroke="#5C5C5C" stroke-width="85" stroke-linecap="round" opacity="0.2" />
+  
+  <path id="path-guide" d="M200 0C180 50 120 100 150 160C170 200 240 220 280 280" stroke="transparent" fill="none" />
+
+  <path d="M195 5Q185 2 175 8Q170 15 180 20Q195 22 205 15Q208 8 195 5Z" fill="#8E8E8E" />
+  <path d="M215 12Q225 10 230 18Q228 28 218 30Q205 28 208 15Z" fill="#9E9E9E" />
+  <path d="M185 25Q175 22 165 30Q160 40 175 45Q190 42 185 25Z" fill="#757575" />
+  
+  <path d="M160 60Q145 55 135 65Q130 80 145 85Q165 82 160 60Z" fill="#8E8E8E" />
+  <path d="M180 75Q195 72 200 85Q195 100 175 98Q165 92 180 75Z" fill="#9E9E9E" />
+  <path d="M140 100Q125 95 120 110Q125 125 145 120Q155 110 140 100Z" fill="#757575" />
+  <path d="M165 125Q180 120 190 135Q185 150 160 148Q150 135 165 125Z" fill="#8E8E8E" />
+  
+  <path d="M150 170Q135 165 140 185Q150 200 170 190Q175 175 150 170Z" fill="#9E9E9E" />
+  <path d="M190 185Q210 180 220 200Q215 220 195 215Q180 205 190 185Z" fill="#757575" />
+  <path d="M225 215Q245 210 255 225Q250 245 230 240Q215 230 225 215Z" fill="#8E8E8E" />
+  <path d="M200 240Q185 235 180 255Q190 270 210 265Q220 250 200 240Z" fill="#9E9E9E" />
+  <path d="M250 255Q270 250 285 270Q275 290 255 285Q240 270 250 255Z" fill="#757575" />
+
+  <ellipse cx="185" cy="12" rx="5" ry="3" fill="white" fill-opacity="0.2" transform="rotate(-20 185 12)" />
+  <ellipse cx="145" cy="70" rx="6" ry="3" fill="white" fill-opacity="0.2" transform="rotate(-15 145 70)" />
+  <ellipse cx="230" cy="225" rx="7" ry="4" fill="white" fill-opacity="0.2" transform="rotate(-30 230 225)" />
+</svg>

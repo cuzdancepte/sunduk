@@ -87,27 +87,33 @@ const LevelStep: React.FC<LevelStepProps> = ({
   };
 
   const getStepColors = () => {
-    // Renkler sadece type'a göre belirlenir (pass, lock, default)
-    // icon değeri renk belirlemede kullanılmaz
+    // Referans: orman yolunda renkli ders düğümleri
+    // pass = tamamlanan (yeşil), lock = kilitli (gri), default = açık (mavi veya aktif sarı-turuncu)
     switch (type) {
       case 'pass':
         return {
-          outer: '#FF981F',
-          middle: '#FFC107',
-          inner: '#FFDA6A',
+          outer: '#2E7D32',
+          middle: '#4CAF50',
+          inner: '#81C784',
         };
       case 'lock':
         return {
-          outer: '#BDBDBD',
-          middle: '#E0E0E0',
-          inner: '#EEEEEE',
+          outer: '#9E9E9E',
+          middle: '#BDBDBD',
+          inner: '#E0E0E0',
         };
       case 'default':
-        return {
-          outer: '#543ACC',
-          middle: '#6949FF',
-          inner: '#A592FF',
-        };
+        return isActive
+          ? {
+              outer: '#F57C00',
+              middle: '#FF9800',
+              inner: '#FFB74D',
+            }
+          : {
+              outer: '#1565C0',
+              middle: '#1976D2',
+              inner: '#42A5F5',
+            };
       default:
         return {
           outer: '#BDBDBD',
@@ -121,8 +127,8 @@ const LevelStep: React.FC<LevelStepProps> = ({
   const scale = size / 120; // Figma orijinal SVG genişliği 120
   const svgHeight = 105 * scale; // Figma yüksekliği 105
 
-  // Glow rengi - aktif ders için mor tonunda
-  const glowColor = '#6949FF';
+  // Glow rengi - aktif ders için sarı-turuncu (referans: "strong yellow glow")
+  const glowColor = isActive ? '#FFB74D' : '#6949FF';
 
   return (
     <View style={[styles.outerContainer, { width: size + 20, height: svgHeight + 20 }]}>

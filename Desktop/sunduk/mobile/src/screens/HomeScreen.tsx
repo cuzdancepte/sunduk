@@ -1,76 +1,122 @@
 import React, {
   useEffect,
   useState,
-  useMemo,
   useCallback,
   useRef,
+  useMemo,
 } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+  FlatList,
   StatusBar,
-  useWindowDimensions,
   Alert,
+  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import Svg, { Line } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../theme/useTheme';
 import { contentAPI } from '../services/api';
-import { Level } from '../types';
-import { useTheme, useThemeContext } from '../theme/useTheme';
-import { LoadingSpinner } from '../components/ui';
+import { Level, Unit } from '../types';
+import { LoadingSpinner, EmptyState } from '../components/ui';
 import TopBar from '../components/TopBar';
-import LessonCard from '../components/LessonCard';
-import LevelStep from '../components/LevelStep';
-import Mascot from '../components/Mascot';
-import { createPathItems, PathItem } from '../utils/learningPathUtils';
+import PathSegmentItem, {
+  SEGMENT_HEIGHT,
+  getEnterX,
+  getExitX,
+} from '../components/PathSegmentItem';
+import InfinitePathSegment from '../components/InfinitePathSegment';
+import NatureBackground from '../components/NatureBackground';
+import { Ionicons } from '@expo/vector-icons';
 
-const INITIAL_SCROLL_DELAY = 200;
-const CONTENT_EXTRA_HEIGHT = 64;
+const { width: screenWidth } = Dimensions.get('window');
+
+type UnitStatus = 'completed' | 'current' | 'locked';
+
+interface JourneyUnit {
+  unit: Unit;
+  status: UnitStatus;
+}
+
+const getSortedUnits = (levels: Level[]): Unit[] => {
+  return levels
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .flatMap(level =>
+      (level.units || []).slice().sort((a, b) => a.order - b.order),
+    );
+};
+
+const isUnitCompleted = (unit: Unit): boolean => {
+  const lessons = unit.lessons || [];
+  return lessons.length > 0 && lessons.every(l => l.completion?.completed);
+};
+
+const createJourneyStops = (levels: Level[]): JourneyUnit[] => {
+  const units = getSortedUnits(levels);
+  let foundCurrent = false;
+
+  return units.map(unit => {
+    const completed = isUnitCompleted(unit);
+    if (completed) {
+      return { unit, status: 'completed' as UnitStatus };
+    }
+    if (!foundCurrent) {
+      foundCurrent = true;
+      return { unit, status: 'current' as UnitStatus };
+    }
+    return { unit, status: 'locked' as UnitStatus };
+  });
+};
+
+const FADE_COUNT = 3;
+
+const FadingRoad: React.FC<{
+  startIndex: number;
+  count: number;
+  width: number;
+  direction: 'up' | 'down';
+}> = React.memo(({ startIndex, count, width, direction }) => {
+  const segments = [];
+  for (let i = 0; i < count; i++) {
+    const idx = startIndex + (direction === 'up' ? i : -(i + 1));
+    const enterX = getEnterX(Math.abs(idx) % 1000, width);
+    const exitX = getExitX(Math.abs(idx) % 1000, width);
+    const opacity = Math.max(0.15, 1 - (i + 1) * 0.3);
+    segments.push(
+      <View key={i} style={{ width, height: SEGMENT_HEIGHT, opacity }}>
+        <InfinitePathSegment
+          width={width}
+          enterX={idx >= 0 ? enterX : exitX}
+          exitX={idx >= 0 ? exitX : enterX}
+          segmentIndex={2000 + Math.abs(idx)}
+        />
+      </View>,
+    );
+  }
+  return <>{segments}</>;
+});
 
 const HomeScreen = () => {
   const theme = useTheme();
-  const { isDarkMode } = useThemeContext();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const { width } = useWindowDimensions();
+  const flatListRef = useRef<FlatList>(null);
 
   const [levels, setLevels] = useState<Level[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const scrollViewRef = useRef<ScrollView>(null);
-  const gridPadding = theme.grid.padding.horizontal;
-
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
       const levelsData = await contentAPI.getLevels();
-      
-      // 🔍 DEBUG: Backend'den gelen verileri kontrol et
-      console.log('🔍 ========== LEVELS DATA ==========');
-      levelsData.forEach((level, levelIndex) => {
-        console.log(`\n📚 Level ${levelIndex + 1}:`, level.title || level.id);
-        level.units?.forEach((unit, unitIndex) => {
-          console.log(`  📦 Unit ${unitIndex + 1}:`, unit.translations?.[0]?.title || unit.id);
-          unit.lessons?.forEach((lesson, lessonIndex) => {
-            const completion = lesson.completion;
-            const isCompleted = completion?.completed || false;
-            console.log(
-              `    📖 Lesson ${lessonIndex + 1} (Order: ${lesson.order}):`,
-              lesson.translations?.[0]?.title || lesson.id,
-              `| Completed: ${isCompleted}`,
-              completion ? `| Score: ${completion.score}%` : '| No completion data'
-            );
-          });
-        });
-      });
-      console.log('🔍 =================================\n');
-      
       setLevels(levelsData);
     } catch (err: any) {
       const message = err.response?.data?.error || 'Veriler yüklenemedi';
@@ -81,228 +127,110 @@ const HomeScreen = () => {
     }
   }, []);
 
-  // İlk yükleme
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Ekran focus olduğunda (başka ekrandan geri dönüldüğünde) verileri yeniden yükle
-  // Bu sayede ders tamamlandığında anlık olarak sarıya döner
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [loadData])
   );
 
-  const pathItems = useMemo(() => {
-    if (!levels.length) {
-      return [];
-    }
-
-    return createPathItems(levels, screenWidth, gridPadding);
-  }, [levels, screenWidth, gridPadding]);
+  const journeyStops = createJourneyStops(levels);
+  const totalCount = journeyStops.length;
+  const contentHeight = (totalCount + FADE_COUNT * 2 + 2) * SEGMENT_HEIGHT;
+  const currentIndex = journeyStops.findIndex(s => s.status === 'current');
+  const allCompleted = totalCount > 0 && journeyStops.every(s => s.status === 'completed');
 
   useEffect(() => {
-    if (pathItems.length === 0) {
-      return;
-    }
+    if (totalCount === 0 || currentIndex < 0 || !flatListRef.current) return;
+    const offset = currentIndex * SEGMENT_HEIGHT;
+    setTimeout(() => {
+      flatListRef.current?.scrollToOffset({ offset, animated: false });
+    }, 250);
+  }, [totalCount, currentIndex]);
 
-    const timeoutId = setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: false });
-    }, INITIAL_SCROLL_DELAY);
-
-    return () => clearTimeout(timeoutId);
-  }, [pathItems.length]);
-
-  const contentHeight = useMemo(() => {
-    if (pathItems.length === 0) {
-      return screenHeight;
-    }
-
-    const maxBottom = Math.max(
-      ...pathItems.map(item => item.position.top + (item.position.size || 0)),
-    );
-
-    return Math.max(maxBottom + CONTENT_EXTRA_HEIGHT, screenHeight);
-  }, [pathItems, screenHeight]);
-
-  const lines = useMemo(() => {
-    const stepItems = pathItems.filter(
-      item => item.type === 'lesson_step' || item.type === 'exercise_step' || item.type === 'trophy',
-    );
-
-    if (stepItems.length < 2) {
-      return [];
-    }
-
-    return stepItems.slice(0, -1).map((current, index) => {
-      const next = stepItems[index + 1];
-      const currentY =
-        current.position.top + (current.position.size || 0) / 2;
-      const nextY = next.position.top + (next.position.size || 0) / 2;
-
-      return {
-        x1: current.position.left,
-        y1: currentY,
-        x2: next.position.left,
-        y2: nextY,
-      };
-    });
-  }, [pathItems]);
-
-  const handlePathItemPress = useCallback(
-    (item: PathItem) => {
-      if (!item.isUnlocked) {
-        Alert.alert('Kilitli', 'Önceki adımları tamamlamanız gerekiyor.');
-        return;
-      }
-
-      if (item.type === 'unit_card' && item.unitId) {
-        navigation.navigate('App', {
-          screen: 'UnitDetail',
-          params: { unitId: item.unitId },
-        });
-        return;
-      }
-
-      if (
-        (item.type === 'lesson_step' || item.type === 'exercise_step') &&
-        item.lessonId
-      ) {
-        navigation.navigate('App', {
-          screen: 'Lesson',
-          params: { lessonId: item.lessonId },
-        });
-        return;
-      }
-
-      if (item.type === 'trophy' && item.unitId) {
-        // Exam için UnitDetail'e yönlendir, orada exam detayı gösterilecek
-        navigation.navigate('App', {
-          screen: 'UnitDetail',
-          params: { unitId: item.unitId },
-        });
-        return;
-      }
+  const handleUnitPress = useCallback(
+    (stop: JourneyUnit) => {
+      if (stop.status === 'locked') return;
+      navigation.navigate('App', {
+        screen: 'UnitDetail',
+        params: { unitId: stop.unit.id },
+      });
     },
     [navigation],
   );
 
-  const renderPathItem = useCallback(
-    (item: PathItem) => {
-      const { position, stepType, icon, metadata } = item;
-
-      switch (item.type) {
-        case 'unit_card':
-          return (
-            <View
-              key={item.id}
-              style={[
-                styles.unitCardWrapper,
-                {
-                  top: position.top,
-                  left: -gridPadding,
-                  width: screenWidth + gridPadding * 2,
-                },
-              ]}
-            >
-              <TouchableOpacity
-                onPress={() => handlePathItemPress(item)}
-                disabled={!item.isUnlocked}
-                activeOpacity={item.isUnlocked ? 0.8 : 1}
-              >
-                <LessonCard
-                  lessonNumber={metadata?.lessonNumber || 0}
-                  title={metadata?.title || ''}
-                  backgroundColor={metadata?.backgroundColor || '#6949FF'}
-                  fullWidth
-                  onPress={() => handlePathItemPress(item)}
-                />
-              </TouchableOpacity>
-            </View>
-          );
-
-        case 'lesson_step':
-        case 'exercise_step':
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.stepWrapper,
-                {
-                  top: position.top,
-                  left: position.left - (position.size || 0) / 2 - 10, // -10 for glow padding
-                },
-              ]}
-              onPress={() => handlePathItemPress(item)}
-              disabled={!item.isUnlocked}
-              activeOpacity={item.isUnlocked ? 0.7 : 1}
-            >
-              <LevelStep
-                type={stepType}
-                icon={icon || 'star'}
-                size={position.size || 0}
-                isActive={item.isActive}
-              />
-            </TouchableOpacity>
-          );
-
-        case 'mascot':
-          return (
-            <View
-              key={item.id}
-              style={[
-                styles.mascotWrapper,
-                {
-                  top: position.top,
-                  left: position.left - (position.size || 0) / 2,
-                },
-              ]}
-            >
-              <Mascot type={item.mascotType || 'default'} size={position.size || 0} />
-            </View>
-          );
-
-        case 'trophy':
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.stepWrapper,
-                {
-                  top: position.top,
-                  left: position.left - (position.size || 0) / 2 - 10, // -10 for glow padding
-                },
-              ]}
-              onPress={() => handlePathItemPress(item)}
-              disabled={!item.isUnlocked}
-              activeOpacity={item.isUnlocked ? 0.7 : 1}
-            >
-              <LevelStep
-                type={stepType}
-                icon="star"
-                size={position.size || 0}
-                number={item.trophyNumber}
-                isActive={item.isActive}
-              />
-            </TouchableOpacity>
-          );
-
-        default:
-          return null;
-      }
-    },
-    [handlePathItemPress, gridPadding, screenWidth],
+  const renderItem = useCallback(
+    ({ item, index }: { item: JourneyUnit; index: number }) => (
+      <PathSegmentItem
+        item={item}
+        index={index}
+        totalCount={totalCount}
+        isCurrent={index === currentIndex}
+        onPress={() => handleUnitPress(item)}
+      />
+    ),
+    [totalCount, currentIndex, handleUnitPress],
   );
 
-  if (loading && pathItems.length === 0) {
-    return <LoadingSpinner fullScreen text="Yükleniyor..." />;
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: SEGMENT_HEIGHT,
+      offset: SEGMENT_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+
+  const keyExtractor = useCallback((item: JourneyUnit) => item.unit.id, []);
+
+  const topFade = useMemo(
+    () =>
+      totalCount > 0 ? (
+        <FadingRoad
+          startIndex={totalCount}
+          count={FADE_COUNT}
+          width={width}
+          direction="up"
+        />
+      ) : null,
+    [totalCount, width],
+  );
+
+  const bottomFade = null;
+
+  if (loading && totalCount === 0) {
+    return <LoadingSpinner fullScreen text={t('common.loading')} />;
+  }
+
+  if (error || totalCount === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: '#706898' }]}>
+        <View style={[styles.topBarContainer, { paddingTop: insets.top }]}>
+          <TopBar
+            width={screenWidth}
+            height={48}
+            language={{ code: 'EN' }}
+            challengeCount={4}
+            diamondCount={957}
+          />
+        </View>
+        <View style={styles.emptyContainer}>
+          <EmptyState
+            title={t('home.title')}
+            description={error || t('home.emptyDescription')}
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background.default }]}>
+    <View style={styles.container}>
       <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'light-content'}
+        barStyle="light-content"
         backgroundColor={theme.colors.primary.main}
         translucent={false}
       />
@@ -317,55 +245,54 @@ const HomeScreen = () => {
         />
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={[styles.scrollView, { backgroundColor: theme.colors.background.default }]}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            minHeight: contentHeight,
-            paddingTop: 24,
-            paddingBottom: CONTENT_EXTRA_HEIGHT,
-          },
-        ]}
-        showsVerticalScrollIndicator
-      >
-        <View
-          style={[
-            styles.contentContainer,
-            {
-              width: screenWidth,
-              minHeight: contentHeight,
-              paddingHorizontal: gridPadding,
-              backgroundColor: theme.colors.background.default,
-            },
-          ]}
-        >
-          {lines.length > 0 && (
-            <Svg
-              style={StyleSheet.absoluteFill}
-              width={screenWidth}
-              height={contentHeight}
-            >
-              {lines.map((line, index) => (
-                <Line
-                  key={`line-${index}`}
-                  x1={line.x1}
-                  y1={line.y1}
-                  x2={line.x2}
-                  y2={line.y2}
-                  stroke={theme.pathStyles.default.strokeColor}
-                  strokeWidth={theme.pathStyles.default.strokeWidth}
-                  strokeDasharray={theme.pathStyles.default.strokeDasharray.join(' ')}
-                  opacity={theme.pathStyles.default.opacity}
-                />
-              ))}
-            </Svg>
-          )}
-
-          {pathItems.map(renderPathItem)}
+      <View style={styles.listContainer}>
+        <View style={[styles.backgroundWrapper, { height: contentHeight }]}>
+          <NatureBackground width={width} height={contentHeight} />
         </View>
-      </ScrollView>
+
+        <FlatList
+          ref={flatListRef}
+          data={journeyStops}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          getItemLayout={getItemLayout}
+          inverted
+          removeClippedSubviews={false}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          style={styles.flatList}
+          ListFooterComponent={topFade}
+          ListHeaderComponent={bottomFade}
+        />
+
+        {allCompleted && (
+          <View style={styles.completionBadge}>
+            <Ionicons name="trophy" size={64} color="#FFD700" />
+            <Text
+              style={[
+                styles.completionTitle,
+                {
+                  color: theme.colors.text.primary,
+                  fontFamily: theme.typography.fontFamily.bold,
+                },
+              ]}
+            >
+              {t('home.congratulations')}
+            </Text>
+            <Text
+              style={[
+                styles.completionText,
+                {
+                  color: theme.colors.text.secondary,
+                  fontFamily: theme.typography.fontFamily.regular,
+                },
+              ]}
+            >
+              {t('home.allUnitsCompleted')}
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -373,27 +300,58 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#706898',
   },
   topBarContainer: {
-    backgroundColor: '#6949FF',
-    zIndex: 1,
+    backgroundColor: '#8878a0',
+    zIndex: 100,
   },
-  scrollView: {
+  listContainer: {
     flex: 1,
-  },
-  scrollContent: {},
-  contentContainer: {
     position: 'relative',
   },
-  unitCardWrapper: {
+  backgroundWrapper: {
     position: 'absolute',
-    width: '100%',
+    left: 0,
+    top: 0,
+    right: 0,
+    zIndex: 0,
   },
-  stepWrapper: {
-    position: 'absolute',
+  flatList: {
+    flex: 1,
+    zIndex: 1,
   },
-  mascotWrapper: {
+  listContent: {
+    overflow: 'visible',
+  },
+  completionBadge: {
     position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    gap: 12,
+    padding: 24,
+    marginHorizontal: 24,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  completionTitle: {
+    fontSize: 24,
+  },
+  completionText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

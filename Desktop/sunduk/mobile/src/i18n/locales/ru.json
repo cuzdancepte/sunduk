@@ -52,7 +52,11 @@
     }
   },
   "home": {
-    "title": "Главная"
+    "title": "Главная",
+    "congratulations": "Поздравляем!",
+    "allUnitsCompleted": "Вы завершили все модули",
+    "emptyDescription": "Модули пока не доступны.",
+    "loadError": "Не удалось загрузить данные"
   },
   "profile": {
     "title": "Мой аккаунт",

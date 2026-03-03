@@ -52,7 +52,11 @@
     }
   },
   "home": {
-    "title": "Ana Sayfa"
+    "title": "Ana Sayfa",
+    "congratulations": "Tebrikler!",
+    "allUnitsCompleted": "Tüm üniteleri tamamladınız",
+    "emptyDescription": "Henüz ünite bulunmuyor.",
+    "loadError": "Veriler yüklenemedi"
   },
   "profile": {
     "title": "Hesabım",
