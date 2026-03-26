@@ -23,13 +23,7 @@ import { contentAPI } from '../services/api';
 import { Level, Unit } from '../types';
 import { LoadingSpinner, EmptyState } from '../components/ui';
 import TopBar from '../components/TopBar';
-import PathSegmentItem, {
-  SEGMENT_HEIGHT,
-  getEnterX,
-  getExitX,
-} from '../components/PathSegmentItem';
-import InfinitePathSegment from '../components/InfinitePathSegment';
-import NatureBackground from '../components/NatureBackground';
+import PathSegmentItem, { SEGMENT_HEIGHT } from '../components/PathSegmentItem';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -72,33 +66,6 @@ const createJourneyStops = (levels: Level[]): JourneyUnit[] => {
   });
 };
 
-const FADE_COUNT = 3;
-
-const FadingRoad: React.FC<{
-  startIndex: number;
-  count: number;
-  width: number;
-  direction: 'up' | 'down';
-}> = React.memo(({ startIndex, count, width, direction }) => {
-  const segments = [];
-  for (let i = 0; i < count; i++) {
-    const idx = startIndex + (direction === 'up' ? i : -(i + 1));
-    const enterX = getEnterX(Math.abs(idx) % 1000, width);
-    const exitX = getExitX(Math.abs(idx) % 1000, width);
-    const opacity = Math.max(0.15, 1 - (i + 1) * 0.3);
-    segments.push(
-      <View key={i} style={{ width, height: SEGMENT_HEIGHT, opacity }}>
-        <InfinitePathSegment
-          width={width}
-          enterX={idx >= 0 ? enterX : exitX}
-          exitX={idx >= 0 ? exitX : enterX}
-          segmentIndex={2000 + Math.abs(idx)}
-        />
-      </View>,
-    );
-  }
-  return <>{segments}</>;
-});
 
 const HomeScreen = () => {
   const theme = useTheme();
@@ -139,7 +106,6 @@ const HomeScreen = () => {
 
   const journeyStops = createJourneyStops(levels);
   const totalCount = journeyStops.length;
-  const contentHeight = (totalCount + FADE_COUNT * 2 + 2) * SEGMENT_HEIGHT;
   const currentIndex = journeyStops.findIndex(s => s.status === 'current');
   const allCompleted = totalCount > 0 && journeyStops.every(s => s.status === 'completed');
 
@@ -186,21 +152,6 @@ const HomeScreen = () => {
 
   const keyExtractor = useCallback((item: JourneyUnit) => item.unit.id, []);
 
-  const topFade = useMemo(
-    () =>
-      totalCount > 0 ? (
-        <FadingRoad
-          startIndex={totalCount}
-          count={FADE_COUNT}
-          width={width}
-          direction="up"
-        />
-      ) : null,
-    [totalCount, width],
-  );
-
-  const bottomFade = null;
-
   if (loading && totalCount === 0) {
     return <LoadingSpinner fullScreen text={t('common.loading')} />;
   }
@@ -246,10 +197,6 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.listContainer}>
-        <View style={[styles.backgroundWrapper, { height: contentHeight }]}>
-          <NatureBackground width={width} height={contentHeight} />
-        </View>
-
         <FlatList
           ref={flatListRef}
           data={journeyStops}
@@ -261,8 +208,6 @@ const HomeScreen = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           style={styles.flatList}
-          ListFooterComponent={topFade}
-          ListHeaderComponent={bottomFade}
         />
 
         {allCompleted && (
@@ -300,7 +245,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#706898',
+    backgroundColor: '#FFFFFF',
   },
   topBarContainer: {
     backgroundColor: '#8878a0',
@@ -309,17 +254,12 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     position: 'relative',
-  },
-  backgroundWrapper: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    right: 0,
-    zIndex: 0,
+    overflow: 'hidden',
   },
   flatList: {
     flex: 1,
     zIndex: 1,
+    backgroundColor: 'transparent',
   },
   listContent: {
     overflow: 'visible',
